@@ -4,9 +4,9 @@ Jeu de survie 3D dans le navigateur (Three.js) : tu mesures 5 cm dans une maison
 
 ## Jouer
 
-Ouvre `laventure-legendaire.html` dans Edge (double-clic). Une connexion Internet est nécessaire au premier lancement (Three.js est chargé depuis un CDN).
+Ouvre `index.html` dans Edge (double-clic). Une connexion Internet est nécessaire au premier lancement (Three.js est chargé depuis un CDN).
 
-En ligne : https://lesdudus.github.io/laventure-legendaire/ (GitHub Pages ; `index.html` redirige vers le jeu).
+En ligne : https://lesdudus.github.io/laventure-legendaire/ (GitHub Pages). L'ancienne adresse `laventure-legendaire.html` redirige vers `index.html`.
 
 Deux styles graphiques au choix dans **Échap → Paramètres → Style graphique** : « Minecraft (pixel) » (par défaut) ou « Low-poly chaleureux ». Le choix est mémorisé.
 
@@ -38,7 +38,8 @@ Deux styles graphiques au choix dans **Échap → Paramètres → Style graphiqu
 | `tools/check_enc.py` | Vérifie qu'aucun texte n'est mal encodé (accents) |
 | `tools/style-preview.js` | Prototype d'aperçu des styles graphiques |
 | `docs/` | Planche des styles graphiques et captures (local, non publié sur GitHub) |
-| `laventure-legendaire.html` | Jeu généré (ne pas modifier à la main) |
+| `index.html` | Jeu généré (ne pas modifier à la main) |
+| `laventure-legendaire.html` | Redirection vers `index.html` (anciens liens et favoris) |
 
 ## Reconstruire et vérifier
 
