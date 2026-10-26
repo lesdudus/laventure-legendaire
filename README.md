@@ -6,6 +6,8 @@ Jeu de survie 3D dans le navigateur (Three.js) : tu mesures 5 cm dans une maison
 
 Ouvre `laventure-legendaire.html` dans Edge (double-clic). Une connexion Internet est nécessaire au premier lancement (Three.js est chargé depuis un CDN).
 
+En ligne : https://lesdudus.github.io/laventure-legendaire/ (GitHub Pages ; `index.html` redirige vers le jeu).
+
 Deux styles graphiques au choix dans **Échap → Paramètres → Style graphique** : « Minecraft (pixel) » (par défaut) ou « Low-poly chaleureux ». Le choix est mémorisé.
 
 ### Survie en bref
