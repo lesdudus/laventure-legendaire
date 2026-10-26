@@ -1674,7 +1674,8 @@ function buildLegoCastle() {
   merlons(b, K.x0, K.z0, K.x1, K.z0 + 1.6, kTop, C.tan); merlons(b, K.x0, K.z1 - 1.6, K.x1, K.z1, kTop, C.tan);
   merlons(b, K.x0, K.z0 + 1.6, K.x0 + 1.6, K.z1 - 1.6, kTop, C.tan); merlons(b, K.x1 - 1.6, K.z0 + 1.6, K.x1, K.z1 - 1.6, kTop, C.tan);
   for (const y of [16, 22]) for (const x of [283.6, 294.4]) geoBox(b, x - 0.4, y, K.z0 - 0.06, x + 0.4, y + 3, K.z0, C.black, 1, false);
-  geoBox(b, K.x0 + kt, Y0, K.z0 + kt, K.x1 - kt, Y0 + 0.05, K.z1 - kt, C.rbrown, 1, false);
+  // parquet du donjon, un peu plus haut que le sol gris de la cour (sinon les deux surfaces scintillent)
+  geoBox(b, K.x0 + kt, Y0 + 0.05, K.z0 + kt, K.x1 - kt, Y0 + 0.12, K.z1 - kt, C.rbrown, 1, false);
   addFlag(289, kTop + 3 * LG.B, 373, 'tricolore', 8, 5);
   // mur secret (la partie centrale est une porte coulissante)
   const sc = CST.secret, scH = { a: sc.a, b: sc.b, y0: Y0, y1: Y0 + sc.courses * LG.B };
