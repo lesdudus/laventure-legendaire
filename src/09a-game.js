@@ -67,7 +67,7 @@ function saveGame(key = SAVE_KEY) {
   if (!G.started || G.mode === 'dead') return;
   const P = G.p, C = G.car;
   const d = {
-    v: 2, savedAt: Date.now(), time: G.time, s: G.s, fx: { feastUntil: G.fx.feastUntil || 0 }, p: [P.x, P.y, P.z], yaw: G.yaw, pitch: G.pitch, cam3: G.cam3,
+    v: 2, savedAt: Date.now(), time: G.time, s: G.s, fx: { feastUntil: G.fx.feastUntil || 0, huntUntil: G.fx.huntUntil || 0, huntX: G.fx.huntX || 0, huntZ: G.fx.huntZ || 0 }, p: [P.x, P.y, P.z], yaw: G.yaw, pitch: G.pitch, cam3: G.cam3,
     car: [C.x, C.y, C.z, C.heading], cat: { aff: G.cat.aff }, flags: G.flags, side: G.side, mainStep: G.mainStep, track: G.track,
     daily: G.daily, dayEaten: G.dayEaten, counters: G.counters, stats: G.stats, stars: G.stars, upgrades: G.upgrades, visited: G.visited,
     base2: G.base2, capturesToday: G.capturesToday, mood: G.mood, lastDay: G.lastDay, minimap: G.minimap, sel: G.sel,
@@ -111,7 +111,7 @@ function startGame(data) {
       known: data.known || {}, unlockedSeen: data.unlockedSeen || {}, look: Object.assign(G.look, data.look || {}), armor: data.armor || G.armor, baseUp: data.baseUp || {}, ev: data.ev || null,
     });
     G.cat.aff = data.cat ? data.cat.aff : 0;
-    if (data.fx) G.fx.feastUntil = data.fx.feastUntil || 0;
+    if (data.fx) { G.fx.feastUntil = data.fx.feastUntil || 0; G.fx.huntUntil = data.fx.huntUntil || 0; G.fx.huntX = data.fx.huntX || 0; G.fx.huntZ = data.fx.huntZ || 0; }
     // au lancement, on se réveille toujours dans sa base
     G.car.x = data.car[0]; G.car.y = data.car[1]; G.car.z = data.car[2]; G.car.heading = data.car[3];
     INV.load(data.inv); CHEST.load(data.chest);
@@ -216,6 +216,7 @@ function initRender() {
   SCENE.fog = new THREE.Fog(0x9fd3ff, 2200, 6000);
   CAM = new THREE.PerspectiveCamera(SETTINGS.fov, innerWidth / innerHeight, 0.25, 9000);
   CAM.rotation.order = 'YXZ';
+  SCENE.add(CAM);   // pour afficher l'objet tenu en main en vue à la 1re personne
   HEMI = new THREE.HemisphereLight(0xffffff, 0x8a7a66, 2.2); SCENE.add(HEMI);
   SUN = new THREE.DirectionalLight(0xfff1d6, 1.6); SUN.position.set(-500, 900, 1600); SUN.target.position.set(600, 0, 700); SCENE.add(SUN, SUN.target);
   NIGHT = new THREE.AmbientLight(0x5a6aa0, 0); SCENE.add(NIGHT);
@@ -248,18 +249,48 @@ function updateLighting(dt) {
     W.pane.mesh.position.set(open ? -145 : 0, 0, open ? -2.5 : 0); W.pane.fr.position.copy(W.pane.mesh.position);
   }
 }
+// Porte du jardin : aérée au moins 6 h par jour quand les humains sont réveillés (8 h 30 → 20 h),
+// par créneaux de 30 min tirés au hasard chaque jour (12 à 14 créneaux), en plus des passages des humains
+const DOOR_FROM = 8.5, DOOR_TO = 20;
+function doorPlan() {
+  if (!G.flags.doorPlan || G.flags.doorPlan.d !== G.day) {
+    const n = (DOOR_TO - DOOR_FROM) * 2, idx = [...Array(n).keys()];
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    G.flags.doorPlan = { d: G.day, s: idx.slice(0, 12 + Math.floor(Math.random() * 3)).sort((a, b) => a - b) };
+  }
+  return G.flags.doorPlan.s;
+}
+const doorSlot = (h) => Math.floor((h - DOOR_FROM) * 2);
+const doorAired = (h = G.hour) => h >= DOOR_FROM && h < DOOR_TO && doorPlan().includes(doorSlot(h));
+// fin de l'ouverture en cours, ou début de la prochaine (en heures), pour Bubulle et les messages
+function doorNext(h = G.hour) {
+  const s = doorPlan(), cur = doorSlot(h);
+  if (doorAired(h)) { let k = cur; while (s.includes(k + 1)) k++; return { open: true, at: DOOR_FROM + (k + 1) / 2 }; }
+  const nx = s.find((k) => k > cur);
+  return nx === undefined ? null : { open: false, at: DOOR_FROM + nx / 2 };
+}
 function updateDoor(dt) {
   const D = W.door;
   let near = false;
   for (const h of HUMANS) if (!h.away && !h.asleep && dist2(h.x, h.z, 1045, 856) < 160) near = true;
   if (near) D.timer = 2.5; else D.timer -= dt;
-  const tgt = D.timer > 0 ? 1 : 0;
+  const aired = doorAired();
+  if (aired !== D.aired) {
+    if (aired && D.aired !== undefined) {
+      const P = G.p, room = roomAt(P.x, P.z), nx = doorNext();
+      if ((room && (room.id === 'jardin' || room.id === 'cuisine')) || dist2(P.x, P.z, 1045, 856) < 400) toast(`🚪 La porte du jardin s’ouvre pour aérer, jusqu’à ${fmtClock(nx.at * 60)}.`, 'info', 5000);
+    }
+    D.aired = aired;
+  }
+  const tgt = D.timer > 0 || aired ? 1 : 0;
   if (tgt !== D.target) { D.target = tgt; SFX.at('door', 1045, 100, 856, 900, 0.8); }
   D.open = clamp(D.open + (tgt ? 1 : -1) * dt * 1.6, 0, 1);
   D.group.rotation.y = D.open * 1.65;
   const solidOn = D.open < 0.1;
   for (const s of D.solids) { if (solidOn && s.off) { s.off = false; hashOp(s, true); } else if (!solidOn && !s.off) removeSolid(s); }
-  const fs = D.flapSolid, flapOn = solidOn && !G.flags.chatiere;
+  // chatière : franchissable avec 40 d'affection, ou quand Moustache est juste à côté (il te la tient ouverte)
+  const catAtFlap = Cat && dist2(Cat.x, Cat.z, 1045, 854) < 30;
+  const fs = D.flapSolid, flapOn = solidOn && !G.flags.chatiere && !catAtFlap;
   if (flapOn && fs.off) { fs.off = false; hashOp(fs, true); } else if (!flapOn && !fs.off) removeSolid(fs);
   const flapNear = (dist2(G.p.x, G.p.z, 1045, 854) < 14 && G.flags.chatiere) || (Cat && dist2(Cat.x, Cat.z, 1045, 854) < 25);
   D.flapAng = lerp(D.flapAng, flapNear ? 1.2 * Math.sign((G.p.z - 854) || 1) : 0, Math.min(1, dt * 6));
@@ -353,7 +384,7 @@ function step(dt) {
   updatePlayer(dt);
   const total = dt * accel, n = Math.max(1, Math.ceil(total / 0.1)), sd = total / n;
   for (let i = 0; i < n; i++) simStep(sd);
-  updateDoor(dt); updateLighting(dt); updatePickups(dt); updateAnts(dt); updateEggs(dt); updateEvents(dt); updateBaseFx(dt); updateCastle(dt); updateBarbecue(dt); updateInvisFx(); updateCubeGhost();
+  updateDoor(dt); updateLighting(dt); updatePickups(dt); updateAnts(dt); updateEggs(dt); updateEvents(dt); updateBaseFx(dt); updateCastle(dt); updateBarbecue(dt); updateBathPuddle(); updateInvisFx(); updateCubeGhost();
   _tick += dt;
   if (_tick > 0.25) { _tick = 0; perceptionTick(); Missions.tick(); }
   _saveT += dt; if (_saveT > 60) { _saveT = 0; saveGame(); }

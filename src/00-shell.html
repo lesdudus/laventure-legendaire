@@ -94,7 +94,7 @@ kbd { font-family: Consolas, "Courier New", Courier, monospace; font-size: 12px;
 #b-invis i { background: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); transition: none; }
 #b-invis.active .track { border-color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); box-shadow: 0 0 6px color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); }
 #equip-row { display: flex; gap: 12px; font-size: 12px; font-weight: 600; padding-top: 4px; border-top: 1px solid var(--cp-border); }
-#equip-row .eq.armor { color: var(--cp-warning); } #equip-row .eq.invis { color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); } #equip-row .eq.feast { color: var(--cp-text); }
+#equip-row .eq.armor { color: var(--cp-warning); } #equip-row .eq.invis { color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); } #equip-row .eq.feast { color: var(--cp-text); } #equip-row .eq.hunt { color: var(--cp-danger); }
 #v-invis { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .4s; box-shadow: inset 0 0 140px 30px color-mix(in srgb, color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)) 45%, transparent); }
 #v-invis.on { opacity: 1; animation: invShimmer 2.2s ease-in-out infinite alternate; }
 @keyframes invShimmer { from { opacity: .55; } to { opacity: 1; } }

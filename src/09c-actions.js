@@ -238,6 +238,7 @@ const FISH_TIPS = [
   'Dormir dans ta base est sans risque. Ailleurs, regarde le score de cachette avant de fermer les yeux.',
   'Quand Moustache t’aime bien, il distrait les humains et fait fuir Rex.',
   'Monte sur le dos de Moustache (F) : personne ne te voit, et il bondit à 1,30 m ! Des cartons, des boîtes et un panier en osier l’aident à grimper tout en haut.',
+  'Coincé dans le jardin ? Un petit trou au pied de la cabane mène à un cagibi. Grimpe jusqu’à la fenêtre et suis la corde à linge jusqu’au vasistas de la cuisine. Blub !',
   'Les cubes en bois permettent de grimper partout : saute et pose un cube sous tes pieds !',
   'Le soda donne le hoquet… et le hoquet, ça s’entend.',
   'La nuit, les humains dorment… mais Rex patrouille.',
@@ -248,7 +249,8 @@ function fishReport() {
   const h = G.hour;
   const dogTxt = { sleep: 'dort', idle: 'est réveillé et surveille', patrol: 'patrouille dans la maison' }[dogSchedAt(h)];
   let end = ''; for (const [a, b] of DOG_SCHED) if (h >= a && h < b) end = fmtClock(b * 60);
-  return `Blub… Il est ${fmtClock(G.time % 1440)}. Marc ${ACT_LABEL[schedAt('marc', h)]} jusqu’à ${schedEnd('marc', h)}. Léa ${ACT_LABEL[schedAt('lea', h)]} jusqu’à ${schedEnd('lea', h)}. Rex ${dogTxt} jusqu’à ${end}. La fenêtre du salon est ${W.pane.open ? 'ouverte' : 'fermée (elle s’ouvre de 9h à 19h)'}.`;
+  const dn = doorNext(), doorTxt = doorAired() ? `ouverte pour aérer jusqu’à ${fmtClock(dn.at * 60)}` : dn ? `fermée (elle s’ouvrira à ${fmtClock(dn.at * 60)})` : 'fermée jusqu’à demain';
+  return `Blub… Il est ${fmtClock(G.time % 1440)}. Marc ${ACT_LABEL[schedAt('marc', h)]} jusqu’à ${schedEnd('marc', h)}. Léa ${ACT_LABEL[schedAt('lea', h)]} jusqu’à ${schedEnd('lea', h)}. Rex ${dogTxt} jusqu’à ${end}. La fenêtre du salon est ${W.pane.open ? 'ouverte' : 'fermée (elle s’ouvre de 9h à 19h)'}. La porte du jardin est ${doorTxt}.`;
 }
 function talkFish() {
   Missions.event('talkFish'); SFX.play('bubble');
@@ -262,6 +264,7 @@ function talkFish() {
     },
   });
   opts.push({ label: '« Qu’as-tu vu, Bubulle ? »', fn: () => UI.dialog('Bubulle 🐟', fishReport(), [{ label: 'Merci.' }]) });
+  if (isBirthday() && !G.flags.medal) opts.push({ label: '« Que se passe-t-il au salon ? »', fn: () => UI.dialog('Bubulle 🐟', 'Blub ! C’est l’anniversaire de Léa. J’ai vu une médaille d’or en chocolat accrochée tout en haut de la guirlande, juste au-dessus de la télé. Personne ne peut l’atteindre… sauf quelqu’un qui s’envolerait avec un ballon ! Saute depuis la table basse pour en attraper un. Si tes bras fatiguent, vise le tapis moelleux devant la télé. Et ne marche pas dans le gâteau : la crème laisse des traces… Blub.', [{ label: 'Merci, Bubulle !' }]) });
   if (INV.count('diamant')) opts.push({ label: '« Regarde ce diamant ! »', fn: () => { INV.remove('diamant', 1); giveItem('pomme_or', 1); SFX.play('bubble'); UI.dialog('Bubulle 🐟', 'Blub ! Qu’il brille ! En échange, voici une pomme dorée tombée dans mon bocal le jour où Léa a renversé son panier de jouets.', [{ label: 'Merci, Bubulle !' }]); } });
   opts.push({ label: '« Un conseil ? »', fn: () => UI.dialog('Bubulle 🐟', pick(FISH_TIPS), [{ label: 'Compris.' }]) });
   opts.push({ label: 'Au revoir.' });
@@ -269,12 +272,48 @@ function talkFish() {
 }
 function fillCap() { INV.remove('bouchon', 1); giveItem('eau_bouchon', 1); SFX.play('splash'); toast('Bouchon rempli d’eau !', 'success'); }
 function drinkAt(kind) {
-  if (INV.count('bouchon')) return fillCap();
+  if (INV.count('bouchon') && kind !== 'jardin') return fillCap();
   if (kind === 'dog') {
     applyEff({ nour: 8 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'eau_chien' });
     toast('Glou glou… (+8 nourriture) Ça sent le chien.', 'success');
     if (dist2(Dog.x, Dog.z, 786, 826) < 400 && (Dog.awake || Math.random() < 0.5)) { Dog.alert(786, 826, 10); toast('Rex a entendu quelque chose…', 'warn'); }
+  } else if (kind === 'bain') {
+    // flaque du bain : 3 gorgées par soir, elle rétrécit, la 3e a un goût de savon (hoquet à bulles)
+    const n = bathSips();
+    if (n >= 3) return toast('La flaque du bain a séché. Il faudra attendre le prochain bain de Léa !', 'info');
+    G.flags.bath = { d: G.day, n: n + 1 };
+    if (INV.count('bouchon')) { fillCap(); toast(n + 1 >= 3 ? 'C’était la dernière eau de la flaque du bain : elle a séché.' : `La flaque du bain rétrécit : encore ${2 - n} gorgée${2 - n > 1 ? 's' : ''} ce soir.`, 'info'); return; }
+    applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' });
+    if (n + 1 >= 3) { G.fx.hicUntil = G.simT + 20; G.fx.hicNext = G.simT + 3; toast('Beurk, un goût de savon ! (+5 nourriture) Tu as le hoquet à bulles… et la flaque du bain a séché.', 'warn', 6000); }
+    else toast(`Tu bois dans la flaque du bain (+5 nourriture). L’eau a un petit goût de savon… Elle rétrécit : encore ${2 - n} gorgée${2 - n > 1 ? 's' : ''} ce soir.`, 'success', 5000);
+  } else if (kind === 'jardin') {
+    // flaques du jardin : 2 gorgées maximum par jour (l'eau n'est peut-être pas propre)
+    const n = puddleSips();
+    if (n >= 2) return toast('🤢 Beurk… Tu as déjà bu 2 fois dans les flaques du jardin aujourd’hui. Cette eau n’est peut-être pas propre : en boire encore pourrait te rendre malade. Reviens demain !', 'warn', 6000);
+    G.flags.puddle = { d: G.day, n: n + 1 };
+    applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' });
+    toast((n === 0
+      ? 'Tu bois dans la flaque (+5 nourriture). Attention : cette eau n’est peut-être pas propre. Plus de 2 gorgées par jour pourraient te rendre malade !'
+      : 'Tu bois dans la flaque (+5 nourriture). C’est ta 2e gorgée aujourd’hui : plus une goutte de cette eau avant demain, tu risquerais d’être malade !')
+      + (INV.count('bouchon') ? ' Tu ne remplis pas ton bouchon ici : il risquerait d’être sali.' : ''), 'warn', 6000);
   } else { applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' }); toast('Tu bois dans la flaque (+5 nourriture).', 'success'); }
+}
+const puddleSips = () => (G.flags.puddle && G.flags.puddle.d === G.day ? G.flags.puddle.n : 0);
+const bathSips = () => (G.flags.bath && G.flags.bath.d === G.day ? G.flags.bath.n : 0);
+// flaque laissée par le bain de Léa (20 h 30 → minuit) : rétrécit à chaque gorgée
+let _bathPuddle = null;
+function updateBathPuddle() {
+  if (!_bathPuddle) {
+    const g = new THREE.Group();
+    const water = new THREE.Mesh(new THREE.CircleGeometry(14, 20), new THREE.MeshLambertMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.7, emissive: 0x16323f, depthWrite: false }));
+    water.rotation.x = -Math.PI / 2; g.add(water);
+    const bub = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, emissive: 0x555555 });
+    for (const [x, z, r] of [[-5, 3, 1.2], [4, -4, 0.9], [6, 5, 0.7], [-2, -6, 0.8]]) { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), bub); b.position.set(x, 0.1, z); b.scale.y = 0.5; g.add(b); }
+    g.position.set(560, 0.86, 102); W.scene.add(g); _bathPuddle = g;
+  }
+  const left = 3 - bathSips(), on = G.hour >= 20.5 && left > 0;
+  _bathPuddle.visible = on;
+  if (on) _bathPuddle.scale.setScalar([0, 0.45, 0.72, 1][left]);
 }
 function petCat() {
   const s = INV.slots[G.sel], it = s && ITEMS[s.id];
@@ -301,8 +340,8 @@ function staticInteracts() {
   ];
   if (INV.count('bouchon')) L.push({ x: 680, y: 0.3, z: 204, r: 16, label: 'Remplir le bouchon (fuite)', act: () => fillCap() });
   if (INV.count('bague')) L.push({ x: 115, y: 55, z: 48, r: 18, label: 'Déposer la bague 💍', act: () => { INV.remove('bague', 1); G.flags.ringReturned = true; SFX.play('quest'); toast('La bague est sur la table de nuit. Marc va être ravi !', 'success'); } });
-  for (const p of W.puddles) L.push({ x: p.x, y: 0, z: p.z, r: p.r, label: INV.count('bouchon') ? 'Remplir le bouchon (flaque)' : 'Boire dans la flaque', act: () => drinkAt('flaque') });
-  if (G.hour >= 20.5) L.push({ x: 560, y: 0.3, z: 100, r: 20, label: INV.count('bouchon') ? 'Remplir le bouchon (flaque)' : 'Boire dans la flaque du bain', act: () => drinkAt('flaque') });
+  for (const p of W.puddles) L.push({ x: p.x, y: 0, z: p.z, r: p.r, label: (() => { const left = Math.max(0, 2 - puddleSips()); return left ? `Boire dans la flaque (encore ${left} gorgée${left > 1 ? 's' : ''} aujourd’hui)` : 'Flaque : plus de gorgée aujourd’hui 🤢'; })(), act: () => drinkAt('jardin') });
+  if (G.hour >= 20.5 && bathSips() < 3) { const left = 3 - bathSips(); L.push({ x: 560, y: 0.3, z: 100, r: 20, label: INV.count('bouchon') ? `Remplir le bouchon (flaque du bain · encore ${left} gorgée${left > 1 ? 's' : ''})` : `Boire dans la flaque du bain (encore ${left} gorgée${left > 1 ? 's' : ''} ce soir)`, act: () => drinkAt('bain') }); }
   if (G.base2) L.push({ x: G.base2.x, y: G.base2.y, z: G.base2.z, r: 14, label: 'Se reposer / dormir (T)', act: () => UI.openRest() });
   if (G.baseUp.garage && inBaseArea(G.p.x, G.p.y, G.p.z)) L.push({ x: 957, y: 0, z: 6, r: 22, label: '🅿️ Rappeler la voiture au garage', act: recallCar });
   L.push(...eventInteracts());

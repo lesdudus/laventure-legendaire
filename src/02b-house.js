@@ -54,7 +54,7 @@ function buildHouse() {
   box(656, 0, 426, 1200, 0.3, 850, 'tile', C.tileK, { tag: 'floor' });
   // murs extérieurs (avec fenêtres et portes)
   wall('x', -12, 0, -12, 1212, [{ a: 120, b: 280, y0: 90, y1: 200 }, { a: 530, b: 610, y0: 150, y1: 200 }, { a: 880, b: 893, y0: 0, y1: 12 }, { a: 1010, b: 1150, y0: 90, y1: 200 }], C.wall);
-  wall('x', 850, 862, -12, 1212, [{ a: 150, b: 450, y0: 90, y1: 210 }, { a: 740, b: 880, y0: 100, y1: 200 }, { a: 1000, b: 1090, y0: 0, y1: 210 }], C.wall);
+  wall('x', 850, 862, -12, 1212, [{ a: 150, b: 450, y0: 90, y1: 210 }, { a: 740, b: 880, y0: 100, y1: 200 }, { a: 1000, b: 1090, y0: 0, y1: 210 }, { a: 1172, b: 1194, y0: 100, y1: 140 }], C.wall);
   wall('z', -12, 0, 0, 850, [{ a: 150, b: 300, y0: 90, y1: 200 }, { a: 560, b: 650, y0: 0, y1: 210 }], C.wall);
   wall('z', 1200, 1212, 0, 850, [{ a: 500, b: 650, y0: 100, y1: 200 }], C.wall);
   // murs intérieurs : portes + trous dans les plinthes (11 × 9 cm)
@@ -89,6 +89,14 @@ function buildHouse() {
   glassPane(740, 100, 855, 880, 200, 857); windowFrame('x', 856, 740, 880, 100, 200); box(735, 96, 840, 885, 100, 850, 'plain', S);
   glassPane(-7, 90, 150, -5, 200, 300); windowFrame('z', -6, 150, 300, 90, 200); box(0, 86, 145, 10, 90, 305, 'plain', S);
   glassPane(1205, 100, 500, 1207, 200, 650); windowFrame('z', 1206, 500, 650, 100, 200); box(1190, 96, 500, 1200, 100, 650, 'plain', S);
+  // vasistas de la cuisine (toujours entrouvert) : arrivée de la corde à linge du jardin
+  deco(1170, 98, 849, 1196, 100, 863, 'plain', S); deco(1170, 100, 849, 1172, 142, 863, 'plain', S); deco(1194, 100, 849, 1196, 142, 863, 'plain', S); deco(1170, 140, 849, 1196, 142, 863, 'plain', S);
+  {
+    const pane = new THREE.Mesh(new THREE.BoxGeometry(22, 30, 0.4), MATS.glass);
+    pane.rotation.x = -0.61; pane.position.set(1183, 127.7, 870.6); pane.renderOrder = 2; W.scene.add(pane);
+    const fr = meshBoxes([[-11, -15, -0.4, 11, -14, 0.4, S], [-11, 14, -0.4, 11, 15, 0.4, S], [-11, -15, -0.4, -10, 15, 0.4, S], [10, -15, -0.4, 11, 15, 0.4, S]], 'plain');
+    fr.rotation.copy(pane.rotation); fr.position.copy(pane.position); W.scene.add(fr);
+  }
   // grande fenêtre du salon (partie droite coulissante, ouverte en journée)
   glassPane(150, 90, 855, 300, 210, 857);
   deco(147, 90, 854, 150, 210, 858, 'plain', S); deco(450, 90, 854, 453, 210, 858, 'plain', S); deco(147, 207, 854, 453, 210, 858, 'plain', S);

@@ -101,6 +101,7 @@ class Human {
     if (pv.cover) v *= pv.low ? 0.25 : 0.7;
     if (pv.grass) v *= 0.45;
     if (this.state === 'chase' || this.state === 'search') v *= 1.8;
+    if (huntActive()) v *= 1.8;
     return clamp(v, 0, 1.5);
   }
   hear(x, y, z, radius, intensity, src) {
@@ -108,6 +109,8 @@ class Human {
     // Léa, penchée sur son château, entend tout ce qui s'y passe
     const castle = this.act === 'l_lego' && this.arrived && G.flags.inCastle && src !== 'aboiement';
     if (castle) { radius *= 1.5; intensity *= 2.4; }
+    // traces de crème repérées : ils tendent l'oreille au moindre pas
+    if (huntActive() && src !== 'aboiement') { radius *= 1.8; intensity *= 2; }
     const d = Math.hypot(x - this.x, z - this.z);
     if (d > radius) return;
     const k = intensity * (1 - d / radius);
@@ -144,7 +147,9 @@ class Human {
     if (this.distractT > 0) { this.distractT -= dt; this.speed = 0; this.ry = turnTo(this.ry, Math.atan2(Cat.x - this.x, Cat.z - this.z), dt * 4); this.render(dt); return; }
     // vision
     this.visT -= dt;
-    const hidden = G.flags.inBase || G.flags.inFur || G.flags.inCastle || G.mode === 'cat' || isInvisible();
+    // pendant une recherche (traces de crème), une excellente cachette protège seulement si tu ne bouges pas
+    const stillHidden = huntActive() && G.hideHere >= 80 && !(G.pvis && G.pvis.moving);
+    const hidden = G.flags.inBase || G.flags.inFur || G.flags.inCastle || G.mode === 'cat' || isInvisible() || stillHidden;
     if (this.visT <= 0 && !this.asleep && !this.away && G.mode !== 'jar' && !hidden) {
       this.visT = 0.15;
       this.seeing = this.visibilityOfPlayer();

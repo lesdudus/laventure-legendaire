@@ -435,6 +435,18 @@ const UI = {
     if (Cat) dot(Cat.x, Cat.z, cssVar('--cp-success'), 3);
     if (!carStowed()) { const C = G.car; g.fillStyle = cssVar('--cp-warning'); g.fillRect(X(C.x) - 3, Z(C.z) - 2, 6, 4); g.strokeStyle = cssVar('--cp-text'); g.lineWidth = 1; g.strokeRect(X(C.x) - 3, Z(C.z) - 2, 6, 4); }
     const tg = Missions.current().target; if (tg) dot(tg.x, tg.z, cssVar('--cp-accent'), 3);
+    // bases du joueur : pastille + icône (principale, secondaire, colonie)
+    const bases = [[W.base.spawn.x, W.base.spawn.z, '🏠']];
+    if (G.base2) bases.push([G.base2.x, G.base2.z, '⛺']);
+    if (G.flags.colony) bases.push([W.spots.colony.x, W.spots.colony.z, '🏡']);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '10px "Segoe UI Emoji", "Segoe UI", sans-serif';
+    for (const [x, z, ic] of bases) {
+      const px = X(x), pz = clamp(Z(z), 8, 205);
+      g.fillStyle = cssVar('--cp-surface'); g.strokeStyle = cssVar('--cp-accent'); g.lineWidth = 1.5;
+      g.beginPath(); g.arc(px, pz, 7.5, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = cssVar('--cp-text'); g.fillText(ic, px, pz + 0.5);
+    }
+    g.textBaseline = 'alphabetic';
     g.save(); g.translate(X(G.p.x), Z(G.p.z)); g.rotate(-G.yaw + Math.PI);
     g.fillStyle = cssVar('--cp-link'); g.beginPath(); g.moveTo(0, 5); g.lineTo(-3.5, -3.5); g.lineTo(3.5, -3.5); g.closePath(); g.fill(); g.restore();
   },

@@ -95,6 +95,8 @@ function equipHUD() {
   if (G.armor && G.armor.on) parts.push(`<span class="eq armor" title="Armure portée">🛡️ ${'●'.repeat(G.armor.dur)}${'○'.repeat(Math.max(0, 5 - G.armor.dur))}</span>`);
   if (isInvisible()) parts.push(`<span class="eq invis" title="Invisible">🫥 ${fmtDur(G.invis.charge)}</span>`);
   if ((G.fx.feastUntil || 0) > G.time) parts.push(`<span class="eq feast" title="Festin du barbecue">🍖 ${fmtDur(G.fx.feastUntil - G.time)}</span>`);
+  if (huntActive()) parts.push(`<span class="eq hunt" title="Marc et Léa te cherchent (traces de crème)">👣 ${fmtDur(G.fx.huntUntil - G.time)}</span>`);
+  else if (CREAM.feet > 0) parts.push(`<span class="eq feast" title="Tes pieds laissent des traces de crème">🍰 ${CREAM.feet} pas</span>`);
   return parts.join('');
 }
 const fmtDur = (min) => { const m = Math.max(0, Math.ceil(min)), h = Math.floor(m / 60); return h ? `${h} h ${String(m % 60).padStart(2, '0')}` : `${m} min`; };

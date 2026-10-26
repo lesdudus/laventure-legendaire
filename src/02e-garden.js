@@ -49,7 +49,7 @@ function buildGarden() {
   waterQuad(280, 985, 320, 1015, 0.15); waterQuad(875, 1232, 925, 1268, 0.15);
   // cabane (but final : la lucarne du toit)
   const SH = 0x8d6e4f;
-  wall('x', 1380, 1385, 950, 1200, [{ a: 1060, b: 1072, y0: 0, y1: 10 }], SH, 'wood', 200);
+  wall('x', 1380, 1385, 950, 1200, [{ a: 1060, b: 1072, y0: 0, y1: 10 }, { a: 1108, b: 1120, y0: 0, y1: 10 }, { a: 1172, b: 1194, y0: 150, y1: 182 }], SH, 'wood', 200);
   box(950, 0, 1595, 1200, 200, 1600, 'wood', SH, { tag: 'wall' });
   box(950, 0, 1385, 955, 200, 1595, 'wood', SH, { tag: 'wall' }); box(1195, 0, 1385, 1200, 200, 1595, 'wood', SH, { tag: 'wall' });
   // toit plat percé d'une lucarne
@@ -82,6 +82,42 @@ function buildGarden() {
     W.plug = { mesh: meshBoxes([[1060, 0, 1380, 1072, 10, 1385, SH]], 'wood'), solid: addSolid(1060, 0, 1380, 1072, 10, 1385, 'wall') };
     W.scene.add(W.plug.mesh);
   }
+  // ===== PASSAGE SECRET JARDIN → MAISON (toujours ouvert) =====
+  // petit trou au pied de la cabane → cagibi (fermé, la colonie reste cachée) → escalier de caisses et de pots
+  // → fenêtre ouverte (150 cm) → corde à linge → vasistas de la cuisine (100 cm) → plan de travail (90 cm)
+  box(1102, 1, 1385, 1105, 200, 1418, 'wood', SH, { tag: 'wall' });
+  box(1105, 1, 1415, 1195, 200, 1418, 'wood', SH, { tag: 'wall' });
+  deco(1106, 1, 1386, 1194, 1.2, 1414, 'wood', 0x8d6e4f);
+  deco(1107, 0, 1379.6, 1121, 11, 1380, 'wood', 0x3e2b1f);   // bord sombre du trou
+  box(1106, 0, 1360, 1122, 0.6, 1378, 'stone', 0x9e9e96);    // petite pierre devant le trou
+  {
+    // 7 marches de 18,6 cm max (caisses en bois et pots de peinture), la dernière sous la fenêtre
+    const steps = [[1124, 1133, 19], [1133, 1142, 38], [1142, 1151, 56], [1151, 1160, 75], [1160, 1169, 93], [1169, 1178, 112], [1178, 1194, 131]];
+    steps.forEach(([x0, x1, top], i) => {
+      box(x0, 1, 1385, x1, top, 1399, i % 2 ? 'metal' : 'wood', i % 2 ? [0x1e88e5, 0xe53935, 0x43a047][i % 3] : 0xb0895c);
+      deco(x0 - 0.1, top - 3, 1384.9, x1 + 0.1, top - 2, 1399.1, i % 2 ? 'metal' : 'wood', i % 2 ? 0xeeeeee : 0x7a5a3a);
+    });
+    glow(1186, 172, 1386, 1189, 175, 1389, 0xffd27f);   // petite lanterne près de la fenêtre
+  }
+  // fenêtre ouverte : volets rabattus contre la façade
+  deco(1158, 150, 1378.5, 1172, 182, 1380, 'wood', 0x2e7d5b); deco(1194, 150, 1378.5, 1200, 182, 1380, 'wood', 0x2e7d5b);
+  box(1172, 148, 1372, 1194, 150, 1380, 'wood', 0x8d6e4f);  // petite planche sous la fenêtre
+  // corde à linge tendue de la fenêtre de la cabane (150 cm) au vasistas de la cuisine (100 cm)
+  const WIRE = { axis: 'z', a0: 1372, a1: 862, h0: 150, h1: 100, w0: 1182.5, w1: 1187.5, kind: 'wire' };
+  RAMPS.push(WIRE); W.wire = WIRE;
+  {
+    const len = Math.hypot(WIRE.a0 - WIRE.a1, WIRE.h0 - WIRE.h1), ang = Math.atan2(WIRE.h0 - WIRE.h1, WIRE.a0 - WIRE.a1);
+    const rope = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, len), new THREE.MeshLambertMaterial({ color: 0xece3cc }));
+    rope.rotation.x = -ang; rope.position.set(1185, (WIRE.h0 + WIRE.h1) / 2 - 0.6, (WIRE.a0 + WIRE.a1) / 2);
+    W.scene.add(rope);
+    // linge suspendu sous la corde (décor)
+    const hang = [[1300, 0xe53935, 10], [1250, 0xfdd835, 7], [1180, 0x1e88e5, 12], [1100, 0xffffff, 9], [1020, 0x8e24aa, 8], [960, 0x43a047, 7]];
+    for (const [z, col, h] of hang) {
+      const y = WIRE.h0 + ((WIRE.h1 - WIRE.h0) * (z - WIRE.a0)) / (WIRE.a1 - WIRE.a0) - 1.2;
+      deco(1181, y - h, z - 5, 1189, y, z + 5, 'fabric', col);
+      deco(1184.4, y - 0.5, z - 3.5, 1185.6, y + 1.6, z - 2.5, 'wood', 0xd7b48f); deco(1184.4, y - 0.5, z + 2.5, 1185.6, y + 1.6, z + 3.5, 'wood', 0xd7b48f);
+    }
+  }
   // arbres hors clôture
   for (const [x, z, s] of [[-260, 1250, 1], [1460, 1150, 1.2], [600, 1840, 1.1], [150, 1800, 0.9], [1150, 1830, 1], [-250, 300, 1.1], [1450, 300, 1], [600, -280, 1.2]]) {
     deco(x - 15 * s, -3, z - 15 * s, x + 15 * s, 260 * s, z + 15 * s, 'wood', 0x5d4037);
@@ -112,6 +148,7 @@ function buildGrass() {
     if (onPath(x, z)) continue;
     if (x > 95 && x < 405 && z > 1145 && z < 1255) continue;
     if (x > 940 && x < 1210 && z > 1370 && z < 1610) continue;
+    if (x > 1100 && x < 1128 && z > 1352 && z < 1372) continue;   // devant le petit trou de la cabane
     if (x > 480 && x < 730 && z > 990 && z < 1090) continue;
     if (x > 215 && x < 285 && z > 1475 && z < 1545) continue;
     const h = 6 + r() * 16 * (r() < 0.2 ? 1.6 : 1);
@@ -126,6 +163,7 @@ function buildGrass() {
 
 function buildRampVisuals() {
   for (const R of RAMPS) {
+    if (R.kind === 'wire') continue;   // la corde à linge a son propre modèle
     const L = R.a1 - R.a0, rise = R.h1 - R.h0, len = Math.hypot(L, rise), ang = Math.atan2(rise, Math.abs(L)) * Math.sign(L);
     const w = R.w1 - R.w0, track = R.kind === 'track' || R.kind === 'launch';
     const c = R.kind === 'launch' ? 0xffc107 : track ? 0xff7a00 : 0xe3c08d;

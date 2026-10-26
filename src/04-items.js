@@ -33,7 +33,7 @@ const ITEMS = {
   mouchoir: { name: 'Mouchoir', icon: '🧻', type: 'mat', desc: 'Doux et léger : parfait pour un parachute.', mesh: ['box', 0xf7f7f7, 3] },
   fil: { name: 'Bobine de fil', icon: '🧵', type: 'mat', desc: 'Du fil à coudre.', mesh: ['cyl', 0x1976d2, 2] },
   coton: { name: 'Boule de coton', icon: '☁️', type: 'mat', desc: 'Moelleux. Étouffe les bruits.', mesh: ['ball', 0xffffff, 2.2] },
-  bouchon: { name: 'Bouchon vide', icon: '🔘', type: 'mat', desc: "À remplir (E) à un point d'eau : fuite, gamelle, flaque.", mesh: ['cyl', 0x1e88e5, 2] },
+  bouchon: { name: 'Bouchon vide', icon: '🔘', type: 'mat', desc: "À remplir (E) à un point d'eau propre : fuite du robinet, gamelle… Pas dans les flaques du jardin, il serait sali !", mesh: ['cyl', 0x1e88e5, 2] },
   boite: { name: "Boîte d'allumettes vide", icon: '📦', type: 'mat', desc: 'Une maison toute faite.', mesh: ['box', 0x2f5d8a, 4] },
   fourmi: { name: 'Fourmi', icon: '🐜', type: 'mat', desc: "À griller à l'établi avec une allumette.", mesh: ['box', 0x1a1a1a, 0.9] },
   bague: { name: 'Bague dorée', icon: '💍', type: 'quest', desc: 'Elle appartient à Marc. Dépose-la sur sa table de nuit (chambre).', quest: true, stack: 1 },
@@ -61,6 +61,7 @@ const ITEMS = {
   chamallow: { name: 'Chamallow géant', icon: '🍥', type: 'mat', desc: 'Tout moelleux, gros comme toi. Il paraît qu’il est bien meilleur grillé…', mesh: ['box', 0xfbe3ef, 2.8] },
   festin: { name: 'Festin du barbecue', icon: '🍖', type: 'food', eff: { nour: 100, energie: 20 }, feast: true, desc: 'Un chamallow grillé à point : ta Nourriture est pleine et reste à 100 % pendant 1 jour de jeu !' },
   ailerons: { name: "Kit d'ailerons (rare)", icon: '🪽', type: 'tool', stack: 1, desc: 'Clic droit pour l’installer sur la voiture : en l’air, maintiens Espace pour planer.', mesh: ['box', 0xff7a00, 3] },
+  medaille: { name: "Médaille d'or en chocolat", icon: '🏅', type: 'tool', stack: 1, keep: true, desc: 'Décrochée de la guirlande d’anniversaire à dos de ballon ! Tant que tu l’as sur toi, ton Souffle dure 40 % plus longtemps (28 s de course ou de ballon).', mesh: ['cyl', 0xf5c518, 2.4] },
 };
 // Indices subtils affichés dans la fiche de l'inventaire
 const HINTS = {
@@ -82,7 +83,7 @@ const HINTS = {
   pomme_or: 'Légendaire. Garde-la pour les coups durs.', sandwich_simple: 'Avec un peu plus d’outils, on fait mieux.', eau_miel: 'Le sucre réveille, l’eau désaltère.',
   mix_graines: 'Idéal avant une longue expédition.', brochette: 'Une allumette peut servir à autre chose qu’à faire du feu.', compresse: 'Chaque morsure mérite un pansement.',
   part_gateau: 'Les fêtes laissent toujours des miettes.', armure: 'Cinq morsures, pas une de plus.', ailerons: 'Tout en haut du frigo, dit-on…', couronne: 'Un vrai roi sait se faire oublier.', voiture: 'Une voiture de poche, pratique pour les longs trajets.', tenue_invis: 'Invisible ne veut pas dire silencieux.',
-  cristal: 'Un nouveau brille chaque matin quelque part dans la maison.', chamallow: 'Des braises bien chaudes le rendraient irrésistible.', festin: 'Une journée entière sans avoir faim ni soif.',
+  cristal: 'Un nouveau brille chaque matin quelque part dans la maison.', chamallow: 'Des braises bien chaudes le rendraient irrésistible.', festin: 'Une journée entière sans avoir faim ni soif.', medaille: 'Elle pendait tout en haut de la guirlande, au-dessus de la télé.',
 };
 const TYPE_ORDER = { food: 0, drink: 1, block: 2, tool: 3, mat: 4, quest: 5 };
 const UPGRADES = {

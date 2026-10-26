@@ -27,6 +27,7 @@ function updatePlayer(dt) {
     else if (G.mode === 'cat') updateRide(dt);
     else if (G.mode === 'flight') updateFlight(dt);
     else if (G.mode === 'jar') updateJar(dt);
+    else if (G.mode === 'balloon') updateBalloon(dt);
   } else if (G.mode === 'car') SFX.engine(false, 0);
   breathTick(dt, G.sprinting);
   if (G.mode !== 'cat') G.cat.ride = Math.min(CONFIG.cat.rideTime, (G.cat.ride ?? CONFIG.cat.rideTime) + (CONFIG.cat.rideTime / CONFIG.cat.rideRest) * dt);
@@ -36,10 +37,10 @@ function updatePlayer(dt) {
 
 // Souffle 💨 : baisse en courant à pied, remonte 1 s après l'arrêt de la course
 function breathTick(dt, running) {
-  const B = G.breath, cfg = CONFIG.breath;
+  const B = G.breath, cfg = CONFIG.breath, runSec = cfg.runSec * (INV.count('medaille') ? 1.4 : 1);
   if (running) {
-    B.v = Math.max(0, B.v - (100 / cfg.runSec) * dt); B.wait = cfg.delay;
-    if (B.v <= 0 && !B.out) { B.out = true; toast('💨 À bout de souffle ! Marche un peu pour reprendre ton souffle.', 'warn', 2500); }
+    B.v = Math.max(0, B.v - (100 / runSec) * dt); B.wait = cfg.delay;
+    if (B.v <= 0 && !B.out) { B.out = true; if (G.mode !== 'balloon') toast('💨 À bout de souffle ! Marche un peu pour reprendre ton souffle.', 'warn', 2500); }
     return;
   }
   if (B.wait > 0) { B.wait -= dt; return; }
@@ -73,9 +74,16 @@ function updateWalk(dt) {
   const wantH = G.crouch ? cfg.crouchHeight : cfg.height;
   if (wantH > P.h) { if (ceilingAt(P.x, P.z, P.r * 0.8, P.y + P.h) >= P.y + wantH) P.h = wantH; } else P.h = wantH;
   moveBody(P, dt);
-  if (P.landed) {
-    const fall = P.landed;
-    if (fall > cfg.fallSafe && !P.chuted) { damage((fall - cfg.fallSafe) * cfg.fallDmg, 'Chute'); SFX.play('hurt'); }
+  // corde à linge : aide à l'équilibre (le joueur est doucement recentré sur la corde)
+  const Wr = W.wire;
+  if (Wr && P.onGround && Math.abs(P.x - 1185) < 12 && P.z > 845 && P.z < 1392) {
+    const h = Wr.h0 + ((Wr.h1 - Wr.h0) * (clamp(P.z, Wr.a1, Wr.a0) - Wr.a0)) / (Wr.a1 - Wr.a0);
+    if (Math.abs(P.y - h) < 4) { P.x = lerp(P.x, (Wr.w0 + Wr.w1) / 2, Math.min(1, dt * 10)); if (P.ramp === Wr && !G.flags.wireWalked) { G.flags.wireWalked = true; toast('🧵 Sur la corde à linge ! Avance doucement tout droit, tu gardes l’équilibre.', 'info', 5000); } }
+  }
+      if (P.landed) {
+        const fall = P.landed;
+        if (G.fx.balloonFall) { G.fx.balloonFall = false; balloonLanding(fall); }
+        else if (fall > cfg.fallSafe && !P.chuted) { damage((fall - cfg.fallSafe) * cfg.fallDmg, 'Chute'); SFX.play('hurt'); }
     if (fall > 25) { emitNoise(P.x, P.y, P.z, 40 + fall, 0.25, 'joueur'); SFX.play('thud', 0.4); }
     P.chuted = false; P.airTop = undefined;
   }
@@ -178,7 +186,7 @@ function startRide() {
   if (!SETTINGS.catUnlimited && G.cat.ride < cfg.rideMin) { toast(`Moustache se repose encore… Réessaie dans ${Math.ceil((cfg.rideMin - G.cat.ride) * cfg.rideRest / cfg.rideTime)} s.`, 'warn'); return; }
   G.mode = 'cat'; G.crouch = false; Cat.state = 'ridden'; Cat.jump = null; Cat.after = null;
   G.ride = { h: Cat.ry, tired: false };
-  G.rideB = body(Cat.x, Cat.y, Cat.z, 8, 26, 6);
+  G.rideB = body(Cat.x, Cat.y, Cat.z, 8, 24, 6);   // 24 cm : on passe sous le cadre de la chatière (25 cm)
   G.rideB.ignore = (s) => s.tag === 'flap';   // Moustache passe toujours par sa chatière
   Cat.model.add(PLAYER_MODEL); PLAYER_MODEL.position.set(0, 22, -2); PLAYER_MODEL.rotation.set(0, 0, 0); PLAYER_MODEL.scale.setScalar(1.6);
   const u = PLAYER_MODEL.userData; u.legL.rotation.x = -1.2; u.legR.rotation.x = -1.2;
@@ -205,6 +213,11 @@ function updateRide(dt) {
   if (R.jumpBuf > 0 && R.coyote > 0) { R.jumpBuf = 0; R.coyote = 0; B.vy = Math.sqrt(2 * CONFIG.gravity * cfg.rideJump); B.onGround = false; SFX.play('whoosh', 0.5); }
   if (!Input.down('Space')) G.jumpHeld = false;
   moveBody(B, dt);
+  // chatière : Moustache se centre dans l'ouverture et le cavalier se baisse
+  const nearFlap = Math.abs(B.z - 854) < 22 && Math.abs(B.x - 1045) < 16;
+  if (nearFlap) B.x = lerp(B.x, 1045, Math.min(1, dt * 8));
+  PLAYER_MODEL.position.y = lerp(PLAYER_MODEL.position.y, nearFlap ? 15 : 22, Math.min(1, dt * 10));
+  PLAYER_MODEL.rotation.x = lerp(PLAYER_MODEL.rotation.x, nearFlap ? 1.2 : 0, Math.min(1, dt * 10));
   // sous le plafond de la maison (250 cm, non solide) : le cavalier ne le traverse pas
   if (B.x > 0 && B.x < 1200 && B.z > 0 && B.z < 850 && B.y > 222) { B.y = 222; B.vy = Math.min(0, B.vy); }
   if (B.fellOut) { B.fellOut = false; Object.assign(B, { x: W.base.spawn.x + 20, y: 0, z: W.base.spawn.z + 20, vx: 0, vy: 0, vz: 0 }); endRide('Oups ! Moustache te ramène près de ta base.'); return; }
@@ -309,9 +322,57 @@ function enterColony() {
   SFX.play('win');
 }
 
+// ---------- objet tenu en main (barre rapide) ----------
+// 3e personne : dans la main droite du personnage · 1re personne : en bas à droite de l'écran
+const HELD = { key: '', hand: null, view: null };
+function heldMesh(id, firstPerson) {
+  const [shape, , s] = ITEMS[id].mesh;
+  const long = shape === 'sword' || shape === 'pick';
+  const m = itemMesh(id);
+  m.rotation.set(0, 0, 0);
+  const g = new THREE.Group(); g.add(m);
+  g.scale.setScalar((long ? (firstPerson ? 1.5 : 3.6) : (firstPerson ? 0.5 : 1.2)) / s);
+  if (firstPerson) {
+    // toujours dessiné par-dessus le décor (pas de matériau partagé modifié)
+    m.traverse((o) => {
+      if (!o.isMesh) return;
+      const cl = (mt) => { const c = mt.clone(); c.depthTest = false; c.userData.noStyle = true; return c; };
+      o.material = Array.isArray(o.material) ? o.material.map(cl) : cl(o.material); o.renderOrder = 999;
+    });
+  }
+  return { g, m, long, s };
+}
+function updateHeld() {
+  const s = INV.slots[G.sel], id = s && ITEMS[s.id] && ITEMS[s.id].mesh ? s.id : null;
+  const show = id && !G.rest && G.mode !== 'jar' && G.mode !== 'flight';
+  const key = `${show ? id : ''}|${PLAYER_MODEL.uuid}`;
+  if (key !== HELD.key) {
+    HELD.key = key;
+    for (const k of ['hand', 'view']) if (HELD[k]) { HELD[k].g.removeFromParent(); HELD[k] = null; }
+    if (show) {
+      // main droite : bras pendant (axe -y), la lame pointe vers l'avant
+      const h = heldMesh(id, false), sc = h.g.scale.x;
+      if (h.long) { h.m.rotation.x = Math.PI / 2; h.g.position.set(0, -1.45, (h.s / 2 - 0.7) * sc); }
+      else h.g.position.set(0, -1.75, 0.45);
+      PLAYER_MODEL.userData.armR.add(h.g); HELD.hand = h;
+      const v = heldMesh(id, true);
+      if (v.long) { v.m.rotation.set(-0.55, 0.3, 0.45); v.g.position.set(1.05, -1.0, -2.6); }
+      else v.g.position.set(1.0, -0.85, -2.4);
+      CAM.add(v.g); HELD.view = v;
+    }
+  }
+  if (HELD.view) {
+    HELD.view.g.visible = !G.cam3 && (G.mode === 'walk' || G.mode === 'cat');
+    // léger balancement en marchant
+    const P = G.p, sp = Math.min(1, Math.hypot(P.vx, P.vz) / 60);
+    HELD.view.g.position.y = (HELD.view.long ? -1.0 : -0.85) + Math.sin(G.simT * 9) * 0.05 * sp;
+  }
+}
+
 function updatePlayerModel(dt) {
+  updateHeld();
   const P = G.p, m = PLAYER_MODEL;
-  if (G.mode === 'walk' || G.mode === 'jar') {
+  if (G.mode === 'walk' || G.mode === 'jar' || G.mode === 'balloon') {
     if (m.parent !== SCENE) leaveVehicleVisual();
     m.visible = G.cam3 || G.mode === 'jar';
     m.position.set(P.x, P.y, P.z);
@@ -319,7 +380,7 @@ function updatePlayerModel(dt) {
     m.scale.set(1, G.crouch ? 0.72 : 1, 1);
     animBiped(m, G.mode === 'walk' ? Math.hypot(P.vx, P.vz) : 0, dt, 0.9);
     if (!P.onGround) { m.userData.legL.rotation.x = 0.5; m.userData.legR.rotation.x = -0.3; }
-    if (G.chute || (G.mode === 'walk' && P.maxFall)) { m.userData.armL.rotation.x = m.userData.armR.rotation.x = -3; }
+    if (G.chute || G.mode === 'balloon' || (G.mode === 'walk' && P.maxFall)) { m.userData.armL.rotation.x = m.userData.armR.rotation.x = -3; }
   } else if (G.mode === 'car') {
     m.visible = true; CAR_MODEL.visible = true;
   } else m.visible = true;

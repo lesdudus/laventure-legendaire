@@ -33,6 +33,7 @@ const SIDE = [
   { id: 'roi', title: 'Le trésor du roi', desc: 'Léa construit un château fort Lego dans sa chambre. On dit qu’un roi y a caché son trésor… Regarde bien ses dessins et écoute-la jouer.', check: () => G.flags.legoChest, reward: { cube: 4 }, target: () => pos(289, 0, 336) },
   { id: 'bbq', title: 'Barbecue party', desc: 'Un chamallow géant se cache dans le jardin. Fais-le griller sur le barbecue de la terrasse quand il est chaud (un jour sur deux, de 12 h à 22 h) : grimpe par le sac de charbon et les bûches jusqu’à la tablette.', check: () => (G.counters.craft_festin || 0) >= 1, reward: { bonbon: 2 }, target: () => pos(1183, 54, 936) },
   { id: 'dompteur', title: 'Dompteur', desc: 'Distrais Rex en lançant (G) une croquette ou une balle près de lui.', check: () => (G.counters.dogDistracted || 0) >= 1, reward: { croquette: 2 }, target: () => (Dog ? pos(Dog.x, 50, Dog.z) : null) },
+  { id: 'ballon', title: 'Envolée en ballon', desc: 'Le jour de l’anniversaire de Léa (tous les 10 jours), saute depuis la table basse du salon et accroche-toi à un ballon. Vole jusqu’à la médaille d’or en chocolat qui pend à la guirlande, au-dessus de la télé. Ton Souffle baisse : si tes bras lâchent, tombe sur le tapis !', check: () => !!G.flags.medal, reward: { bonbon: 2 }, target: () => (typeof isBirthday === 'function' && isBirthday() ? pos(316, 166, 437) : null) },
 ];
 const DAILY = [
   { id: 'd_rosee', text: 'Bois 3 gouttes de rosée', ev: 'drink_rosee', goal: 3 },

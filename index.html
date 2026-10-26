@@ -94,7 +94,7 @@ kbd { font-family: Consolas, "Courier New", Courier, monospace; font-size: 12px;
 #b-invis i { background: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); transition: none; }
 #b-invis.active .track { border-color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); box-shadow: 0 0 6px color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); }
 #equip-row { display: flex; gap: 12px; font-size: 12px; font-weight: 600; padding-top: 4px; border-top: 1px solid var(--cp-border); }
-#equip-row .eq.armor { color: var(--cp-warning); } #equip-row .eq.invis { color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); } #equip-row .eq.feast { color: var(--cp-text); }
+#equip-row .eq.armor { color: var(--cp-warning); } #equip-row .eq.invis { color: color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)); } #equip-row .eq.feast { color: var(--cp-text); } #equip-row .eq.hunt { color: var(--cp-danger); }
 #v-invis { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .4s; box-shadow: inset 0 0 140px 30px color-mix(in srgb, color-mix(in srgb, var(--cp-link) 50%, var(--cp-accent)) 45%, transparent); }
 #v-invis.on { opacity: 1; animation: invShimmer 2.2s ease-in-out infinite alternate; }
 @keyframes invShimmer { from { opacity: .55; } to { opacity: 1; } }
@@ -808,7 +808,7 @@ function buildHouse() {
   box(656, 0, 426, 1200, 0.3, 850, 'tile', C.tileK, { tag: 'floor' });
   // murs extérieurs (avec fenêtres et portes)
   wall('x', -12, 0, -12, 1212, [{ a: 120, b: 280, y0: 90, y1: 200 }, { a: 530, b: 610, y0: 150, y1: 200 }, { a: 880, b: 893, y0: 0, y1: 12 }, { a: 1010, b: 1150, y0: 90, y1: 200 }], C.wall);
-  wall('x', 850, 862, -12, 1212, [{ a: 150, b: 450, y0: 90, y1: 210 }, { a: 740, b: 880, y0: 100, y1: 200 }, { a: 1000, b: 1090, y0: 0, y1: 210 }], C.wall);
+  wall('x', 850, 862, -12, 1212, [{ a: 150, b: 450, y0: 90, y1: 210 }, { a: 740, b: 880, y0: 100, y1: 200 }, { a: 1000, b: 1090, y0: 0, y1: 210 }, { a: 1172, b: 1194, y0: 100, y1: 140 }], C.wall);
   wall('z', -12, 0, 0, 850, [{ a: 150, b: 300, y0: 90, y1: 200 }, { a: 560, b: 650, y0: 0, y1: 210 }], C.wall);
   wall('z', 1200, 1212, 0, 850, [{ a: 500, b: 650, y0: 100, y1: 200 }], C.wall);
   // murs intérieurs : portes + trous dans les plinthes (11 × 9 cm)
@@ -843,6 +843,14 @@ function buildHouse() {
   glassPane(740, 100, 855, 880, 200, 857); windowFrame('x', 856, 740, 880, 100, 200); box(735, 96, 840, 885, 100, 850, 'plain', S);
   glassPane(-7, 90, 150, -5, 200, 300); windowFrame('z', -6, 150, 300, 90, 200); box(0, 86, 145, 10, 90, 305, 'plain', S);
   glassPane(1205, 100, 500, 1207, 200, 650); windowFrame('z', 1206, 500, 650, 100, 200); box(1190, 96, 500, 1200, 100, 650, 'plain', S);
+  // vasistas de la cuisine (toujours entrouvert) : arrivée de la corde à linge du jardin
+  deco(1170, 98, 849, 1196, 100, 863, 'plain', S); deco(1170, 100, 849, 1172, 142, 863, 'plain', S); deco(1194, 100, 849, 1196, 142, 863, 'plain', S); deco(1170, 140, 849, 1196, 142, 863, 'plain', S);
+  {
+    const pane = new THREE.Mesh(new THREE.BoxGeometry(22, 30, 0.4), MATS.glass);
+    pane.rotation.x = -0.61; pane.position.set(1183, 127.7, 870.6); pane.renderOrder = 2; W.scene.add(pane);
+    const fr = meshBoxes([[-11, -15, -0.4, 11, -14, 0.4, S], [-11, 14, -0.4, 11, 15, 0.4, S], [-11, -15, -0.4, -10, 15, 0.4, S], [10, -15, -0.4, 11, 15, 0.4, S]], 'plain');
+    fr.rotation.copy(pane.rotation); fr.position.copy(pane.position); W.scene.add(fr);
+  }
   // grande fenêtre du salon (partie droite coulissante, ouverte en journée)
   glassPane(150, 90, 855, 300, 210, 857);
   deco(147, 90, 854, 150, 210, 858, 'plain', S); deco(450, 90, 854, 453, 210, 858, 'plain', S); deco(147, 207, 854, 453, 210, 858, 'plain', S);
@@ -1153,7 +1161,7 @@ function buildGarden() {
   waterQuad(280, 985, 320, 1015, 0.15); waterQuad(875, 1232, 925, 1268, 0.15);
   // cabane (but final : la lucarne du toit)
   const SH = 0x8d6e4f;
-  wall('x', 1380, 1385, 950, 1200, [{ a: 1060, b: 1072, y0: 0, y1: 10 }], SH, 'wood', 200);
+  wall('x', 1380, 1385, 950, 1200, [{ a: 1060, b: 1072, y0: 0, y1: 10 }, { a: 1108, b: 1120, y0: 0, y1: 10 }, { a: 1172, b: 1194, y0: 150, y1: 182 }], SH, 'wood', 200);
   box(950, 0, 1595, 1200, 200, 1600, 'wood', SH, { tag: 'wall' });
   box(950, 0, 1385, 955, 200, 1595, 'wood', SH, { tag: 'wall' }); box(1195, 0, 1385, 1200, 200, 1595, 'wood', SH, { tag: 'wall' });
   // toit plat percé d'une lucarne
@@ -1186,6 +1194,42 @@ function buildGarden() {
     W.plug = { mesh: meshBoxes([[1060, 0, 1380, 1072, 10, 1385, SH]], 'wood'), solid: addSolid(1060, 0, 1380, 1072, 10, 1385, 'wall') };
     W.scene.add(W.plug.mesh);
   }
+  // ===== PASSAGE SECRET JARDIN → MAISON (toujours ouvert) =====
+  // petit trou au pied de la cabane → cagibi (fermé, la colonie reste cachée) → escalier de caisses et de pots
+  // → fenêtre ouverte (150 cm) → corde à linge → vasistas de la cuisine (100 cm) → plan de travail (90 cm)
+  box(1102, 1, 1385, 1105, 200, 1418, 'wood', SH, { tag: 'wall' });
+  box(1105, 1, 1415, 1195, 200, 1418, 'wood', SH, { tag: 'wall' });
+  deco(1106, 1, 1386, 1194, 1.2, 1414, 'wood', 0x8d6e4f);
+  deco(1107, 0, 1379.6, 1121, 11, 1380, 'wood', 0x3e2b1f);   // bord sombre du trou
+  box(1106, 0, 1360, 1122, 0.6, 1378, 'stone', 0x9e9e96);    // petite pierre devant le trou
+  {
+    // 7 marches de 18,6 cm max (caisses en bois et pots de peinture), la dernière sous la fenêtre
+    const steps = [[1124, 1133, 19], [1133, 1142, 38], [1142, 1151, 56], [1151, 1160, 75], [1160, 1169, 93], [1169, 1178, 112], [1178, 1194, 131]];
+    steps.forEach(([x0, x1, top], i) => {
+      box(x0, 1, 1385, x1, top, 1399, i % 2 ? 'metal' : 'wood', i % 2 ? [0x1e88e5, 0xe53935, 0x43a047][i % 3] : 0xb0895c);
+      deco(x0 - 0.1, top - 3, 1384.9, x1 + 0.1, top - 2, 1399.1, i % 2 ? 'metal' : 'wood', i % 2 ? 0xeeeeee : 0x7a5a3a);
+    });
+    glow(1186, 172, 1386, 1189, 175, 1389, 0xffd27f);   // petite lanterne près de la fenêtre
+  }
+  // fenêtre ouverte : volets rabattus contre la façade
+  deco(1158, 150, 1378.5, 1172, 182, 1380, 'wood', 0x2e7d5b); deco(1194, 150, 1378.5, 1200, 182, 1380, 'wood', 0x2e7d5b);
+  box(1172, 148, 1372, 1194, 150, 1380, 'wood', 0x8d6e4f);  // petite planche sous la fenêtre
+  // corde à linge tendue de la fenêtre de la cabane (150 cm) au vasistas de la cuisine (100 cm)
+  const WIRE = { axis: 'z', a0: 1372, a1: 862, h0: 150, h1: 100, w0: 1182.5, w1: 1187.5, kind: 'wire' };
+  RAMPS.push(WIRE); W.wire = WIRE;
+  {
+    const len = Math.hypot(WIRE.a0 - WIRE.a1, WIRE.h0 - WIRE.h1), ang = Math.atan2(WIRE.h0 - WIRE.h1, WIRE.a0 - WIRE.a1);
+    const rope = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, len), new THREE.MeshLambertMaterial({ color: 0xece3cc }));
+    rope.rotation.x = -ang; rope.position.set(1185, (WIRE.h0 + WIRE.h1) / 2 - 0.6, (WIRE.a0 + WIRE.a1) / 2);
+    W.scene.add(rope);
+    // linge suspendu sous la corde (décor)
+    const hang = [[1300, 0xe53935, 10], [1250, 0xfdd835, 7], [1180, 0x1e88e5, 12], [1100, 0xffffff, 9], [1020, 0x8e24aa, 8], [960, 0x43a047, 7]];
+    for (const [z, col, h] of hang) {
+      const y = WIRE.h0 + ((WIRE.h1 - WIRE.h0) * (z - WIRE.a0)) / (WIRE.a1 - WIRE.a0) - 1.2;
+      deco(1181, y - h, z - 5, 1189, y, z + 5, 'fabric', col);
+      deco(1184.4, y - 0.5, z - 3.5, 1185.6, y + 1.6, z - 2.5, 'wood', 0xd7b48f); deco(1184.4, y - 0.5, z + 2.5, 1185.6, y + 1.6, z + 3.5, 'wood', 0xd7b48f);
+    }
+  }
   // arbres hors clôture
   for (const [x, z, s] of [[-260, 1250, 1], [1460, 1150, 1.2], [600, 1840, 1.1], [150, 1800, 0.9], [1150, 1830, 1], [-250, 300, 1.1], [1450, 300, 1], [600, -280, 1.2]]) {
     deco(x - 15 * s, -3, z - 15 * s, x + 15 * s, 260 * s, z + 15 * s, 'wood', 0x5d4037);
@@ -1216,6 +1260,7 @@ function buildGrass() {
     if (onPath(x, z)) continue;
     if (x > 95 && x < 405 && z > 1145 && z < 1255) continue;
     if (x > 940 && x < 1210 && z > 1370 && z < 1610) continue;
+    if (x > 1100 && x < 1128 && z > 1352 && z < 1372) continue;   // devant le petit trou de la cabane
     if (x > 480 && x < 730 && z > 990 && z < 1090) continue;
     if (x > 215 && x < 285 && z > 1475 && z < 1545) continue;
     const h = 6 + r() * 16 * (r() < 0.2 ? 1.6 : 1);
@@ -1230,6 +1275,7 @@ function buildGrass() {
 
 function buildRampVisuals() {
   for (const R of RAMPS) {
+    if (R.kind === 'wire') continue;   // la corde à linge a son propre modèle
     const L = R.a1 - R.a0, rise = R.h1 - R.h0, len = Math.hypot(L, rise), ang = Math.atan2(rise, Math.abs(L)) * Math.sign(L);
     const w = R.w1 - R.w0, track = R.kind === 'track' || R.kind === 'launch';
     const c = R.kind === 'launch' ? 0xffc107 : track ? 0xff7a00 : 0xe3c08d;
@@ -2122,7 +2168,7 @@ const ITEMS = {
   mouchoir: { name: 'Mouchoir', icon: '🧻', type: 'mat', desc: 'Doux et léger : parfait pour un parachute.', mesh: ['box', 0xf7f7f7, 3] },
   fil: { name: 'Bobine de fil', icon: '🧵', type: 'mat', desc: 'Du fil à coudre.', mesh: ['cyl', 0x1976d2, 2] },
   coton: { name: 'Boule de coton', icon: '☁️', type: 'mat', desc: 'Moelleux. Étouffe les bruits.', mesh: ['ball', 0xffffff, 2.2] },
-  bouchon: { name: 'Bouchon vide', icon: '🔘', type: 'mat', desc: "À remplir (E) à un point d'eau : fuite, gamelle, flaque.", mesh: ['cyl', 0x1e88e5, 2] },
+  bouchon: { name: 'Bouchon vide', icon: '🔘', type: 'mat', desc: "À remplir (E) à un point d'eau propre : fuite du robinet, gamelle… Pas dans les flaques du jardin, il serait sali !", mesh: ['cyl', 0x1e88e5, 2] },
   boite: { name: "Boîte d'allumettes vide", icon: '📦', type: 'mat', desc: 'Une maison toute faite.', mesh: ['box', 0x2f5d8a, 4] },
   fourmi: { name: 'Fourmi', icon: '🐜', type: 'mat', desc: "À griller à l'établi avec une allumette.", mesh: ['box', 0x1a1a1a, 0.9] },
   bague: { name: 'Bague dorée', icon: '💍', type: 'quest', desc: 'Elle appartient à Marc. Dépose-la sur sa table de nuit (chambre).', quest: true, stack: 1 },
@@ -2150,6 +2196,7 @@ const ITEMS = {
   chamallow: { name: 'Chamallow géant', icon: '🍥', type: 'mat', desc: 'Tout moelleux, gros comme toi. Il paraît qu’il est bien meilleur grillé…', mesh: ['box', 0xfbe3ef, 2.8] },
   festin: { name: 'Festin du barbecue', icon: '🍖', type: 'food', eff: { nour: 100, energie: 20 }, feast: true, desc: 'Un chamallow grillé à point : ta Nourriture est pleine et reste à 100 % pendant 1 jour de jeu !' },
   ailerons: { name: "Kit d'ailerons (rare)", icon: '🪽', type: 'tool', stack: 1, desc: 'Clic droit pour l’installer sur la voiture : en l’air, maintiens Espace pour planer.', mesh: ['box', 0xff7a00, 3] },
+  medaille: { name: "Médaille d'or en chocolat", icon: '🏅', type: 'tool', stack: 1, keep: true, desc: 'Décrochée de la guirlande d’anniversaire à dos de ballon ! Tant que tu l’as sur toi, ton Souffle dure 40 % plus longtemps (28 s de course ou de ballon).', mesh: ['cyl', 0xf5c518, 2.4] },
 };
 // Indices subtils affichés dans la fiche de l'inventaire
 const HINTS = {
@@ -2171,7 +2218,7 @@ const HINTS = {
   pomme_or: 'Légendaire. Garde-la pour les coups durs.', sandwich_simple: 'Avec un peu plus d’outils, on fait mieux.', eau_miel: 'Le sucre réveille, l’eau désaltère.',
   mix_graines: 'Idéal avant une longue expédition.', brochette: 'Une allumette peut servir à autre chose qu’à faire du feu.', compresse: 'Chaque morsure mérite un pansement.',
   part_gateau: 'Les fêtes laissent toujours des miettes.', armure: 'Cinq morsures, pas une de plus.', ailerons: 'Tout en haut du frigo, dit-on…', couronne: 'Un vrai roi sait se faire oublier.', voiture: 'Une voiture de poche, pratique pour les longs trajets.', tenue_invis: 'Invisible ne veut pas dire silencieux.',
-  cristal: 'Un nouveau brille chaque matin quelque part dans la maison.', chamallow: 'Des braises bien chaudes le rendraient irrésistible.', festin: 'Une journée entière sans avoir faim ni soif.',
+  cristal: 'Un nouveau brille chaque matin quelque part dans la maison.', chamallow: 'Des braises bien chaudes le rendraient irrésistible.', festin: 'Une journée entière sans avoir faim ni soif.', medaille: 'Elle pendait tout en haut de la guirlande, au-dessus de la télé.',
 };
 const TYPE_ORDER = { food: 0, drink: 1, block: 2, tool: 3, mat: 4, quest: 5 };
 const UPGRADES = {
@@ -2843,6 +2890,7 @@ class Human {
     if (pv.cover) v *= pv.low ? 0.25 : 0.7;
     if (pv.grass) v *= 0.45;
     if (this.state === 'chase' || this.state === 'search') v *= 1.8;
+    if (huntActive()) v *= 1.8;
     return clamp(v, 0, 1.5);
   }
   hear(x, y, z, radius, intensity, src) {
@@ -2850,6 +2898,8 @@ class Human {
     // Léa, penchée sur son château, entend tout ce qui s'y passe
     const castle = this.act === 'l_lego' && this.arrived && G.flags.inCastle && src !== 'aboiement';
     if (castle) { radius *= 1.5; intensity *= 2.4; }
+    // traces de crème repérées : ils tendent l'oreille au moindre pas
+    if (huntActive() && src !== 'aboiement') { radius *= 1.8; intensity *= 2; }
     const d = Math.hypot(x - this.x, z - this.z);
     if (d > radius) return;
     const k = intensity * (1 - d / radius);
@@ -2886,7 +2936,9 @@ class Human {
     if (this.distractT > 0) { this.distractT -= dt; this.speed = 0; this.ry = turnTo(this.ry, Math.atan2(Cat.x - this.x, Cat.z - this.z), dt * 4); this.render(dt); return; }
     // vision
     this.visT -= dt;
-    const hidden = G.flags.inBase || G.flags.inFur || G.flags.inCastle || G.mode === 'cat' || isInvisible();
+    // pendant une recherche (traces de crème), une excellente cachette protège seulement si tu ne bouges pas
+    const stillHidden = huntActive() && G.hideHere >= 80 && !(G.pvis && G.pvis.moving);
+    const hidden = G.flags.inBase || G.flags.inFur || G.flags.inCastle || G.mode === 'cat' || isInvisible() || stillHidden;
     if (this.visT <= 0 && !this.asleep && !this.away && G.mode !== 'jar' && !hidden) {
       this.visT = 0.15;
       this.seeing = this.visibilityOfPlayer();
@@ -3341,6 +3393,7 @@ const SIDE = [
   { id: 'roi', title: 'Le trésor du roi', desc: 'Léa construit un château fort Lego dans sa chambre. On dit qu’un roi y a caché son trésor… Regarde bien ses dessins et écoute-la jouer.', check: () => G.flags.legoChest, reward: { cube: 4 }, target: () => pos(289, 0, 336) },
   { id: 'bbq', title: 'Barbecue party', desc: 'Un chamallow géant se cache dans le jardin. Fais-le griller sur le barbecue de la terrasse quand il est chaud (un jour sur deux, de 12 h à 22 h) : grimpe par le sac de charbon et les bûches jusqu’à la tablette.', check: () => (G.counters.craft_festin || 0) >= 1, reward: { bonbon: 2 }, target: () => pos(1183, 54, 936) },
   { id: 'dompteur', title: 'Dompteur', desc: 'Distrais Rex en lançant (G) une croquette ou une balle près de lui.', check: () => (G.counters.dogDistracted || 0) >= 1, reward: { croquette: 2 }, target: () => (Dog ? pos(Dog.x, 50, Dog.z) : null) },
+  { id: 'ballon', title: 'Envolée en ballon', desc: 'Le jour de l’anniversaire de Léa (tous les 10 jours), saute depuis la table basse du salon et accroche-toi à un ballon. Vole jusqu’à la médaille d’or en chocolat qui pend à la guirlande, au-dessus de la télé. Ton Souffle baisse : si tes bras lâchent, tombe sur le tapis !', check: () => !!G.flags.medal, reward: { bonbon: 2 }, target: () => (typeof isBirthday === 'function' && isBirthday() ? pos(316, 166, 437) : null) },
 ];
 const DAILY = [
   { id: 'd_rosee', text: 'Bois 3 gouttes de rosée', ev: 'drink_rosee', goal: 3 },
@@ -3874,6 +3927,18 @@ const UI = {
     if (Cat) dot(Cat.x, Cat.z, cssVar('--cp-success'), 3);
     if (!carStowed()) { const C = G.car; g.fillStyle = cssVar('--cp-warning'); g.fillRect(X(C.x) - 3, Z(C.z) - 2, 6, 4); g.strokeStyle = cssVar('--cp-text'); g.lineWidth = 1; g.strokeRect(X(C.x) - 3, Z(C.z) - 2, 6, 4); }
     const tg = Missions.current().target; if (tg) dot(tg.x, tg.z, cssVar('--cp-accent'), 3);
+    // bases du joueur : pastille + icône (principale, secondaire, colonie)
+    const bases = [[W.base.spawn.x, W.base.spawn.z, '🏠']];
+    if (G.base2) bases.push([G.base2.x, G.base2.z, '⛺']);
+    if (G.flags.colony) bases.push([W.spots.colony.x, W.spots.colony.z, '🏡']);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '10px "Segoe UI Emoji", "Segoe UI", sans-serif';
+    for (const [x, z, ic] of bases) {
+      const px = X(x), pz = clamp(Z(z), 8, 205);
+      g.fillStyle = cssVar('--cp-surface'); g.strokeStyle = cssVar('--cp-accent'); g.lineWidth = 1.5;
+      g.beginPath(); g.arc(px, pz, 7.5, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = cssVar('--cp-text'); g.fillText(ic, px, pz + 0.5);
+    }
+    g.textBaseline = 'alphabetic';
     g.save(); g.translate(X(G.p.x), Z(G.p.z)); g.rotate(-G.yaw + Math.PI);
     g.fillStyle = cssVar('--cp-link'); g.beginPath(); g.moveTo(0, 5); g.lineTo(-3.5, -3.5); g.lineTo(3.5, -3.5); g.closePath(); g.fill(); g.restore();
   },
@@ -3948,7 +4013,7 @@ function saveGame(key = SAVE_KEY) {
   if (!G.started || G.mode === 'dead') return;
   const P = G.p, C = G.car;
   const d = {
-    v: 2, savedAt: Date.now(), time: G.time, s: G.s, fx: { feastUntil: G.fx.feastUntil || 0 }, p: [P.x, P.y, P.z], yaw: G.yaw, pitch: G.pitch, cam3: G.cam3,
+    v: 2, savedAt: Date.now(), time: G.time, s: G.s, fx: { feastUntil: G.fx.feastUntil || 0, huntUntil: G.fx.huntUntil || 0, huntX: G.fx.huntX || 0, huntZ: G.fx.huntZ || 0 }, p: [P.x, P.y, P.z], yaw: G.yaw, pitch: G.pitch, cam3: G.cam3,
     car: [C.x, C.y, C.z, C.heading], cat: { aff: G.cat.aff }, flags: G.flags, side: G.side, mainStep: G.mainStep, track: G.track,
     daily: G.daily, dayEaten: G.dayEaten, counters: G.counters, stats: G.stats, stars: G.stars, upgrades: G.upgrades, visited: G.visited,
     base2: G.base2, capturesToday: G.capturesToday, mood: G.mood, lastDay: G.lastDay, minimap: G.minimap, sel: G.sel,
@@ -3992,7 +4057,7 @@ function startGame(data) {
       known: data.known || {}, unlockedSeen: data.unlockedSeen || {}, look: Object.assign(G.look, data.look || {}), armor: data.armor || G.armor, baseUp: data.baseUp || {}, ev: data.ev || null,
     });
     G.cat.aff = data.cat ? data.cat.aff : 0;
-    if (data.fx) G.fx.feastUntil = data.fx.feastUntil || 0;
+    if (data.fx) { G.fx.feastUntil = data.fx.feastUntil || 0; G.fx.huntUntil = data.fx.huntUntil || 0; G.fx.huntX = data.fx.huntX || 0; G.fx.huntZ = data.fx.huntZ || 0; }
     // au lancement, on se réveille toujours dans sa base
     G.car.x = data.car[0]; G.car.y = data.car[1]; G.car.z = data.car[2]; G.car.heading = data.car[3];
     INV.load(data.inv); CHEST.load(data.chest);
@@ -4097,6 +4162,7 @@ function initRender() {
   SCENE.fog = new THREE.Fog(0x9fd3ff, 2200, 6000);
   CAM = new THREE.PerspectiveCamera(SETTINGS.fov, innerWidth / innerHeight, 0.25, 9000);
   CAM.rotation.order = 'YXZ';
+  SCENE.add(CAM);   // pour afficher l'objet tenu en main en vue à la 1re personne
   HEMI = new THREE.HemisphereLight(0xffffff, 0x8a7a66, 2.2); SCENE.add(HEMI);
   SUN = new THREE.DirectionalLight(0xfff1d6, 1.6); SUN.position.set(-500, 900, 1600); SUN.target.position.set(600, 0, 700); SCENE.add(SUN, SUN.target);
   NIGHT = new THREE.AmbientLight(0x5a6aa0, 0); SCENE.add(NIGHT);
@@ -4129,18 +4195,48 @@ function updateLighting(dt) {
     W.pane.mesh.position.set(open ? -145 : 0, 0, open ? -2.5 : 0); W.pane.fr.position.copy(W.pane.mesh.position);
   }
 }
+// Porte du jardin : aérée au moins 6 h par jour quand les humains sont réveillés (8 h 30 → 20 h),
+// par créneaux de 30 min tirés au hasard chaque jour (12 à 14 créneaux), en plus des passages des humains
+const DOOR_FROM = 8.5, DOOR_TO = 20;
+function doorPlan() {
+  if (!G.flags.doorPlan || G.flags.doorPlan.d !== G.day) {
+    const n = (DOOR_TO - DOOR_FROM) * 2, idx = [...Array(n).keys()];
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    G.flags.doorPlan = { d: G.day, s: idx.slice(0, 12 + Math.floor(Math.random() * 3)).sort((a, b) => a - b) };
+  }
+  return G.flags.doorPlan.s;
+}
+const doorSlot = (h) => Math.floor((h - DOOR_FROM) * 2);
+const doorAired = (h = G.hour) => h >= DOOR_FROM && h < DOOR_TO && doorPlan().includes(doorSlot(h));
+// fin de l'ouverture en cours, ou début de la prochaine (en heures), pour Bubulle et les messages
+function doorNext(h = G.hour) {
+  const s = doorPlan(), cur = doorSlot(h);
+  if (doorAired(h)) { let k = cur; while (s.includes(k + 1)) k++; return { open: true, at: DOOR_FROM + (k + 1) / 2 }; }
+  const nx = s.find((k) => k > cur);
+  return nx === undefined ? null : { open: false, at: DOOR_FROM + nx / 2 };
+}
 function updateDoor(dt) {
   const D = W.door;
   let near = false;
   for (const h of HUMANS) if (!h.away && !h.asleep && dist2(h.x, h.z, 1045, 856) < 160) near = true;
   if (near) D.timer = 2.5; else D.timer -= dt;
-  const tgt = D.timer > 0 ? 1 : 0;
+  const aired = doorAired();
+  if (aired !== D.aired) {
+    if (aired && D.aired !== undefined) {
+      const P = G.p, room = roomAt(P.x, P.z), nx = doorNext();
+      if ((room && (room.id === 'jardin' || room.id === 'cuisine')) || dist2(P.x, P.z, 1045, 856) < 400) toast(`🚪 La porte du jardin s’ouvre pour aérer, jusqu’à ${fmtClock(nx.at * 60)}.`, 'info', 5000);
+    }
+    D.aired = aired;
+  }
+  const tgt = D.timer > 0 || aired ? 1 : 0;
   if (tgt !== D.target) { D.target = tgt; SFX.at('door', 1045, 100, 856, 900, 0.8); }
   D.open = clamp(D.open + (tgt ? 1 : -1) * dt * 1.6, 0, 1);
   D.group.rotation.y = D.open * 1.65;
   const solidOn = D.open < 0.1;
   for (const s of D.solids) { if (solidOn && s.off) { s.off = false; hashOp(s, true); } else if (!solidOn && !s.off) removeSolid(s); }
-  const fs = D.flapSolid, flapOn = solidOn && !G.flags.chatiere;
+  // chatière : franchissable avec 40 d'affection, ou quand Moustache est juste à côté (il te la tient ouverte)
+  const catAtFlap = Cat && dist2(Cat.x, Cat.z, 1045, 854) < 30;
+  const fs = D.flapSolid, flapOn = solidOn && !G.flags.chatiere && !catAtFlap;
   if (flapOn && fs.off) { fs.off = false; hashOp(fs, true); } else if (!flapOn && !fs.off) removeSolid(fs);
   const flapNear = (dist2(G.p.x, G.p.z, 1045, 854) < 14 && G.flags.chatiere) || (Cat && dist2(Cat.x, Cat.z, 1045, 854) < 25);
   D.flapAng = lerp(D.flapAng, flapNear ? 1.2 * Math.sign((G.p.z - 854) || 1) : 0, Math.min(1, dt * 6));
@@ -4234,7 +4330,7 @@ function step(dt) {
   updatePlayer(dt);
   const total = dt * accel, n = Math.max(1, Math.ceil(total / 0.1)), sd = total / n;
   for (let i = 0; i < n; i++) simStep(sd);
-  updateDoor(dt); updateLighting(dt); updatePickups(dt); updateAnts(dt); updateEggs(dt); updateEvents(dt); updateBaseFx(dt); updateCastle(dt); updateBarbecue(dt); updateInvisFx(); updateCubeGhost();
+  updateDoor(dt); updateLighting(dt); updatePickups(dt); updateAnts(dt); updateEggs(dt); updateEvents(dt); updateBaseFx(dt); updateCastle(dt); updateBarbecue(dt); updateBathPuddle(); updateInvisFx(); updateCubeGhost();
   _tick += dt;
   if (_tick > 0.25) { _tick = 0; perceptionTick(); Missions.tick(); }
   _saveT += dt; if (_saveT > 60) { _saveT = 0; saveGame(); }
@@ -4309,6 +4405,7 @@ function updatePlayer(dt) {
     else if (G.mode === 'cat') updateRide(dt);
     else if (G.mode === 'flight') updateFlight(dt);
     else if (G.mode === 'jar') updateJar(dt);
+    else if (G.mode === 'balloon') updateBalloon(dt);
   } else if (G.mode === 'car') SFX.engine(false, 0);
   breathTick(dt, G.sprinting);
   if (G.mode !== 'cat') G.cat.ride = Math.min(CONFIG.cat.rideTime, (G.cat.ride ?? CONFIG.cat.rideTime) + (CONFIG.cat.rideTime / CONFIG.cat.rideRest) * dt);
@@ -4318,10 +4415,10 @@ function updatePlayer(dt) {
 
 // Souffle 💨 : baisse en courant à pied, remonte 1 s après l'arrêt de la course
 function breathTick(dt, running) {
-  const B = G.breath, cfg = CONFIG.breath;
+  const B = G.breath, cfg = CONFIG.breath, runSec = cfg.runSec * (INV.count('medaille') ? 1.4 : 1);
   if (running) {
-    B.v = Math.max(0, B.v - (100 / cfg.runSec) * dt); B.wait = cfg.delay;
-    if (B.v <= 0 && !B.out) { B.out = true; toast('💨 À bout de souffle ! Marche un peu pour reprendre ton souffle.', 'warn', 2500); }
+    B.v = Math.max(0, B.v - (100 / runSec) * dt); B.wait = cfg.delay;
+    if (B.v <= 0 && !B.out) { B.out = true; if (G.mode !== 'balloon') toast('💨 À bout de souffle ! Marche un peu pour reprendre ton souffle.', 'warn', 2500); }
     return;
   }
   if (B.wait > 0) { B.wait -= dt; return; }
@@ -4355,9 +4452,16 @@ function updateWalk(dt) {
   const wantH = G.crouch ? cfg.crouchHeight : cfg.height;
   if (wantH > P.h) { if (ceilingAt(P.x, P.z, P.r * 0.8, P.y + P.h) >= P.y + wantH) P.h = wantH; } else P.h = wantH;
   moveBody(P, dt);
-  if (P.landed) {
-    const fall = P.landed;
-    if (fall > cfg.fallSafe && !P.chuted) { damage((fall - cfg.fallSafe) * cfg.fallDmg, 'Chute'); SFX.play('hurt'); }
+  // corde à linge : aide à l'équilibre (le joueur est doucement recentré sur la corde)
+  const Wr = W.wire;
+  if (Wr && P.onGround && Math.abs(P.x - 1185) < 12 && P.z > 845 && P.z < 1392) {
+    const h = Wr.h0 + ((Wr.h1 - Wr.h0) * (clamp(P.z, Wr.a1, Wr.a0) - Wr.a0)) / (Wr.a1 - Wr.a0);
+    if (Math.abs(P.y - h) < 4) { P.x = lerp(P.x, (Wr.w0 + Wr.w1) / 2, Math.min(1, dt * 10)); if (P.ramp === Wr && !G.flags.wireWalked) { G.flags.wireWalked = true; toast('🧵 Sur la corde à linge ! Avance doucement tout droit, tu gardes l’équilibre.', 'info', 5000); } }
+  }
+      if (P.landed) {
+        const fall = P.landed;
+        if (G.fx.balloonFall) { G.fx.balloonFall = false; balloonLanding(fall); }
+        else if (fall > cfg.fallSafe && !P.chuted) { damage((fall - cfg.fallSafe) * cfg.fallDmg, 'Chute'); SFX.play('hurt'); }
     if (fall > 25) { emitNoise(P.x, P.y, P.z, 40 + fall, 0.25, 'joueur'); SFX.play('thud', 0.4); }
     P.chuted = false; P.airTop = undefined;
   }
@@ -4460,7 +4564,7 @@ function startRide() {
   if (!SETTINGS.catUnlimited && G.cat.ride < cfg.rideMin) { toast(`Moustache se repose encore… Réessaie dans ${Math.ceil((cfg.rideMin - G.cat.ride) * cfg.rideRest / cfg.rideTime)} s.`, 'warn'); return; }
   G.mode = 'cat'; G.crouch = false; Cat.state = 'ridden'; Cat.jump = null; Cat.after = null;
   G.ride = { h: Cat.ry, tired: false };
-  G.rideB = body(Cat.x, Cat.y, Cat.z, 8, 26, 6);
+  G.rideB = body(Cat.x, Cat.y, Cat.z, 8, 24, 6);   // 24 cm : on passe sous le cadre de la chatière (25 cm)
   G.rideB.ignore = (s) => s.tag === 'flap';   // Moustache passe toujours par sa chatière
   Cat.model.add(PLAYER_MODEL); PLAYER_MODEL.position.set(0, 22, -2); PLAYER_MODEL.rotation.set(0, 0, 0); PLAYER_MODEL.scale.setScalar(1.6);
   const u = PLAYER_MODEL.userData; u.legL.rotation.x = -1.2; u.legR.rotation.x = -1.2;
@@ -4487,6 +4591,11 @@ function updateRide(dt) {
   if (R.jumpBuf > 0 && R.coyote > 0) { R.jumpBuf = 0; R.coyote = 0; B.vy = Math.sqrt(2 * CONFIG.gravity * cfg.rideJump); B.onGround = false; SFX.play('whoosh', 0.5); }
   if (!Input.down('Space')) G.jumpHeld = false;
   moveBody(B, dt);
+  // chatière : Moustache se centre dans l'ouverture et le cavalier se baisse
+  const nearFlap = Math.abs(B.z - 854) < 22 && Math.abs(B.x - 1045) < 16;
+  if (nearFlap) B.x = lerp(B.x, 1045, Math.min(1, dt * 8));
+  PLAYER_MODEL.position.y = lerp(PLAYER_MODEL.position.y, nearFlap ? 15 : 22, Math.min(1, dt * 10));
+  PLAYER_MODEL.rotation.x = lerp(PLAYER_MODEL.rotation.x, nearFlap ? 1.2 : 0, Math.min(1, dt * 10));
   // sous le plafond de la maison (250 cm, non solide) : le cavalier ne le traverse pas
   if (B.x > 0 && B.x < 1200 && B.z > 0 && B.z < 850 && B.y > 222) { B.y = 222; B.vy = Math.min(0, B.vy); }
   if (B.fellOut) { B.fellOut = false; Object.assign(B, { x: W.base.spawn.x + 20, y: 0, z: W.base.spawn.z + 20, vx: 0, vy: 0, vz: 0 }); endRide('Oups ! Moustache te ramène près de ta base.'); return; }
@@ -4591,9 +4700,57 @@ function enterColony() {
   SFX.play('win');
 }
 
+// ---------- objet tenu en main (barre rapide) ----------
+// 3e personne : dans la main droite du personnage · 1re personne : en bas à droite de l'écran
+const HELD = { key: '', hand: null, view: null };
+function heldMesh(id, firstPerson) {
+  const [shape, , s] = ITEMS[id].mesh;
+  const long = shape === 'sword' || shape === 'pick';
+  const m = itemMesh(id);
+  m.rotation.set(0, 0, 0);
+  const g = new THREE.Group(); g.add(m);
+  g.scale.setScalar((long ? (firstPerson ? 1.5 : 3.6) : (firstPerson ? 0.5 : 1.2)) / s);
+  if (firstPerson) {
+    // toujours dessiné par-dessus le décor (pas de matériau partagé modifié)
+    m.traverse((o) => {
+      if (!o.isMesh) return;
+      const cl = (mt) => { const c = mt.clone(); c.depthTest = false; c.userData.noStyle = true; return c; };
+      o.material = Array.isArray(o.material) ? o.material.map(cl) : cl(o.material); o.renderOrder = 999;
+    });
+  }
+  return { g, m, long, s };
+}
+function updateHeld() {
+  const s = INV.slots[G.sel], id = s && ITEMS[s.id] && ITEMS[s.id].mesh ? s.id : null;
+  const show = id && !G.rest && G.mode !== 'jar' && G.mode !== 'flight';
+  const key = `${show ? id : ''}|${PLAYER_MODEL.uuid}`;
+  if (key !== HELD.key) {
+    HELD.key = key;
+    for (const k of ['hand', 'view']) if (HELD[k]) { HELD[k].g.removeFromParent(); HELD[k] = null; }
+    if (show) {
+      // main droite : bras pendant (axe -y), la lame pointe vers l'avant
+      const h = heldMesh(id, false), sc = h.g.scale.x;
+      if (h.long) { h.m.rotation.x = Math.PI / 2; h.g.position.set(0, -1.45, (h.s / 2 - 0.7) * sc); }
+      else h.g.position.set(0, -1.75, 0.45);
+      PLAYER_MODEL.userData.armR.add(h.g); HELD.hand = h;
+      const v = heldMesh(id, true);
+      if (v.long) { v.m.rotation.set(-0.55, 0.3, 0.45); v.g.position.set(1.05, -1.0, -2.6); }
+      else v.g.position.set(1.0, -0.85, -2.4);
+      CAM.add(v.g); HELD.view = v;
+    }
+  }
+  if (HELD.view) {
+    HELD.view.g.visible = !G.cam3 && (G.mode === 'walk' || G.mode === 'cat');
+    // léger balancement en marchant
+    const P = G.p, sp = Math.min(1, Math.hypot(P.vx, P.vz) / 60);
+    HELD.view.g.position.y = (HELD.view.long ? -1.0 : -0.85) + Math.sin(G.simT * 9) * 0.05 * sp;
+  }
+}
+
 function updatePlayerModel(dt) {
+  updateHeld();
   const P = G.p, m = PLAYER_MODEL;
-  if (G.mode === 'walk' || G.mode === 'jar') {
+  if (G.mode === 'walk' || G.mode === 'jar' || G.mode === 'balloon') {
     if (m.parent !== SCENE) leaveVehicleVisual();
     m.visible = G.cam3 || G.mode === 'jar';
     m.position.set(P.x, P.y, P.z);
@@ -4601,7 +4758,7 @@ function updatePlayerModel(dt) {
     m.scale.set(1, G.crouch ? 0.72 : 1, 1);
     animBiped(m, G.mode === 'walk' ? Math.hypot(P.vx, P.vz) : 0, dt, 0.9);
     if (!P.onGround) { m.userData.legL.rotation.x = 0.5; m.userData.legR.rotation.x = -0.3; }
-    if (G.chute || (G.mode === 'walk' && P.maxFall)) { m.userData.armL.rotation.x = m.userData.armR.rotation.x = -3; }
+    if (G.chute || G.mode === 'balloon' || (G.mode === 'walk' && P.maxFall)) { m.userData.armL.rotation.x = m.userData.armR.rotation.x = -3; }
   } else if (G.mode === 'car') {
     m.visible = true; CAR_MODEL.visible = true;
   } else m.visible = true;
@@ -4853,6 +5010,7 @@ const FISH_TIPS = [
   'Dormir dans ta base est sans risque. Ailleurs, regarde le score de cachette avant de fermer les yeux.',
   'Quand Moustache t’aime bien, il distrait les humains et fait fuir Rex.',
   'Monte sur le dos de Moustache (F) : personne ne te voit, et il bondit à 1,30 m ! Des cartons, des boîtes et un panier en osier l’aident à grimper tout en haut.',
+  'Coincé dans le jardin ? Un petit trou au pied de la cabane mène à un cagibi. Grimpe jusqu’à la fenêtre et suis la corde à linge jusqu’au vasistas de la cuisine. Blub !',
   'Les cubes en bois permettent de grimper partout : saute et pose un cube sous tes pieds !',
   'Le soda donne le hoquet… et le hoquet, ça s’entend.',
   'La nuit, les humains dorment… mais Rex patrouille.',
@@ -4863,7 +5021,8 @@ function fishReport() {
   const h = G.hour;
   const dogTxt = { sleep: 'dort', idle: 'est réveillé et surveille', patrol: 'patrouille dans la maison' }[dogSchedAt(h)];
   let end = ''; for (const [a, b] of DOG_SCHED) if (h >= a && h < b) end = fmtClock(b * 60);
-  return `Blub… Il est ${fmtClock(G.time % 1440)}. Marc ${ACT_LABEL[schedAt('marc', h)]} jusqu’à ${schedEnd('marc', h)}. Léa ${ACT_LABEL[schedAt('lea', h)]} jusqu’à ${schedEnd('lea', h)}. Rex ${dogTxt} jusqu’à ${end}. La fenêtre du salon est ${W.pane.open ? 'ouverte' : 'fermée (elle s’ouvre de 9h à 19h)'}.`;
+  const dn = doorNext(), doorTxt = doorAired() ? `ouverte pour aérer jusqu’à ${fmtClock(dn.at * 60)}` : dn ? `fermée (elle s’ouvrira à ${fmtClock(dn.at * 60)})` : 'fermée jusqu’à demain';
+  return `Blub… Il est ${fmtClock(G.time % 1440)}. Marc ${ACT_LABEL[schedAt('marc', h)]} jusqu’à ${schedEnd('marc', h)}. Léa ${ACT_LABEL[schedAt('lea', h)]} jusqu’à ${schedEnd('lea', h)}. Rex ${dogTxt} jusqu’à ${end}. La fenêtre du salon est ${W.pane.open ? 'ouverte' : 'fermée (elle s’ouvre de 9h à 19h)'}. La porte du jardin est ${doorTxt}.`;
 }
 function talkFish() {
   Missions.event('talkFish'); SFX.play('bubble');
@@ -4877,6 +5036,7 @@ function talkFish() {
     },
   });
   opts.push({ label: '« Qu’as-tu vu, Bubulle ? »', fn: () => UI.dialog('Bubulle 🐟', fishReport(), [{ label: 'Merci.' }]) });
+  if (isBirthday() && !G.flags.medal) opts.push({ label: '« Que se passe-t-il au salon ? »', fn: () => UI.dialog('Bubulle 🐟', 'Blub ! C’est l’anniversaire de Léa. J’ai vu une médaille d’or en chocolat accrochée tout en haut de la guirlande, juste au-dessus de la télé. Personne ne peut l’atteindre… sauf quelqu’un qui s’envolerait avec un ballon ! Saute depuis la table basse pour en attraper un. Si tes bras fatiguent, vise le tapis moelleux devant la télé. Et ne marche pas dans le gâteau : la crème laisse des traces… Blub.', [{ label: 'Merci, Bubulle !' }]) });
   if (INV.count('diamant')) opts.push({ label: '« Regarde ce diamant ! »', fn: () => { INV.remove('diamant', 1); giveItem('pomme_or', 1); SFX.play('bubble'); UI.dialog('Bubulle 🐟', 'Blub ! Qu’il brille ! En échange, voici une pomme dorée tombée dans mon bocal le jour où Léa a renversé son panier de jouets.', [{ label: 'Merci, Bubulle !' }]); } });
   opts.push({ label: '« Un conseil ? »', fn: () => UI.dialog('Bubulle 🐟', pick(FISH_TIPS), [{ label: 'Compris.' }]) });
   opts.push({ label: 'Au revoir.' });
@@ -4884,12 +5044,48 @@ function talkFish() {
 }
 function fillCap() { INV.remove('bouchon', 1); giveItem('eau_bouchon', 1); SFX.play('splash'); toast('Bouchon rempli d’eau !', 'success'); }
 function drinkAt(kind) {
-  if (INV.count('bouchon')) return fillCap();
+  if (INV.count('bouchon') && kind !== 'jardin') return fillCap();
   if (kind === 'dog') {
     applyEff({ nour: 8 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'eau_chien' });
     toast('Glou glou… (+8 nourriture) Ça sent le chien.', 'success');
     if (dist2(Dog.x, Dog.z, 786, 826) < 400 && (Dog.awake || Math.random() < 0.5)) { Dog.alert(786, 826, 10); toast('Rex a entendu quelque chose…', 'warn'); }
+  } else if (kind === 'bain') {
+    // flaque du bain : 3 gorgées par soir, elle rétrécit, la 3e a un goût de savon (hoquet à bulles)
+    const n = bathSips();
+    if (n >= 3) return toast('La flaque du bain a séché. Il faudra attendre le prochain bain de Léa !', 'info');
+    G.flags.bath = { d: G.day, n: n + 1 };
+    if (INV.count('bouchon')) { fillCap(); toast(n + 1 >= 3 ? 'C’était la dernière eau de la flaque du bain : elle a séché.' : `La flaque du bain rétrécit : encore ${2 - n} gorgée${2 - n > 1 ? 's' : ''} ce soir.`, 'info'); return; }
+    applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' });
+    if (n + 1 >= 3) { G.fx.hicUntil = G.simT + 20; G.fx.hicNext = G.simT + 3; toast('Beurk, un goût de savon ! (+5 nourriture) Tu as le hoquet à bulles… et la flaque du bain a séché.', 'warn', 6000); }
+    else toast(`Tu bois dans la flaque du bain (+5 nourriture). L’eau a un petit goût de savon… Elle rétrécit : encore ${2 - n} gorgée${2 - n > 1 ? 's' : ''} ce soir.`, 'success', 5000);
+  } else if (kind === 'jardin') {
+    // flaques du jardin : 2 gorgées maximum par jour (l'eau n'est peut-être pas propre)
+    const n = puddleSips();
+    if (n >= 2) return toast('🤢 Beurk… Tu as déjà bu 2 fois dans les flaques du jardin aujourd’hui. Cette eau n’est peut-être pas propre : en boire encore pourrait te rendre malade. Reviens demain !', 'warn', 6000);
+    G.flags.puddle = { d: G.day, n: n + 1 };
+    applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' });
+    toast((n === 0
+      ? 'Tu bois dans la flaque (+5 nourriture). Attention : cette eau n’est peut-être pas propre. Plus de 2 gorgées par jour pourraient te rendre malade !'
+      : 'Tu bois dans la flaque (+5 nourriture). C’est ta 2e gorgée aujourd’hui : plus une goutte de cette eau avant demain, tu risquerais d’être malade !')
+      + (INV.count('bouchon') ? ' Tu ne remplis pas ton bouchon ici : il risquerait d’être sali.' : ''), 'warn', 6000);
   } else { applyEff({ nour: 5 }); G.flags.drank = true; SFX.play('drink'); Missions.event('drink', { id: 'flaque' }); toast('Tu bois dans la flaque (+5 nourriture).', 'success'); }
+}
+const puddleSips = () => (G.flags.puddle && G.flags.puddle.d === G.day ? G.flags.puddle.n : 0);
+const bathSips = () => (G.flags.bath && G.flags.bath.d === G.day ? G.flags.bath.n : 0);
+// flaque laissée par le bain de Léa (20 h 30 → minuit) : rétrécit à chaque gorgée
+let _bathPuddle = null;
+function updateBathPuddle() {
+  if (!_bathPuddle) {
+    const g = new THREE.Group();
+    const water = new THREE.Mesh(new THREE.CircleGeometry(14, 20), new THREE.MeshLambertMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.7, emissive: 0x16323f, depthWrite: false }));
+    water.rotation.x = -Math.PI / 2; g.add(water);
+    const bub = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, emissive: 0x555555 });
+    for (const [x, z, r] of [[-5, 3, 1.2], [4, -4, 0.9], [6, 5, 0.7], [-2, -6, 0.8]]) { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), bub); b.position.set(x, 0.1, z); b.scale.y = 0.5; g.add(b); }
+    g.position.set(560, 0.86, 102); W.scene.add(g); _bathPuddle = g;
+  }
+  const left = 3 - bathSips(), on = G.hour >= 20.5 && left > 0;
+  _bathPuddle.visible = on;
+  if (on) _bathPuddle.scale.setScalar([0, 0.45, 0.72, 1][left]);
 }
 function petCat() {
   const s = INV.slots[G.sel], it = s && ITEMS[s.id];
@@ -4916,8 +5112,8 @@ function staticInteracts() {
   ];
   if (INV.count('bouchon')) L.push({ x: 680, y: 0.3, z: 204, r: 16, label: 'Remplir le bouchon (fuite)', act: () => fillCap() });
   if (INV.count('bague')) L.push({ x: 115, y: 55, z: 48, r: 18, label: 'Déposer la bague 💍', act: () => { INV.remove('bague', 1); G.flags.ringReturned = true; SFX.play('quest'); toast('La bague est sur la table de nuit. Marc va être ravi !', 'success'); } });
-  for (const p of W.puddles) L.push({ x: p.x, y: 0, z: p.z, r: p.r, label: INV.count('bouchon') ? 'Remplir le bouchon (flaque)' : 'Boire dans la flaque', act: () => drinkAt('flaque') });
-  if (G.hour >= 20.5) L.push({ x: 560, y: 0.3, z: 100, r: 20, label: INV.count('bouchon') ? 'Remplir le bouchon (flaque)' : 'Boire dans la flaque du bain', act: () => drinkAt('flaque') });
+  for (const p of W.puddles) L.push({ x: p.x, y: 0, z: p.z, r: p.r, label: (() => { const left = Math.max(0, 2 - puddleSips()); return left ? `Boire dans la flaque (encore ${left} gorgée${left > 1 ? 's' : ''} aujourd’hui)` : 'Flaque : plus de gorgée aujourd’hui 🤢'; })(), act: () => drinkAt('jardin') });
+  if (G.hour >= 20.5 && bathSips() < 3) { const left = 3 - bathSips(); L.push({ x: 560, y: 0.3, z: 100, r: 20, label: INV.count('bouchon') ? `Remplir le bouchon (flaque du bain · encore ${left} gorgée${left > 1 ? 's' : ''})` : `Boire dans la flaque du bain (encore ${left} gorgée${left > 1 ? 's' : ''} ce soir)`, act: () => drinkAt('bain') }); }
   if (G.base2) L.push({ x: G.base2.x, y: G.base2.y, z: G.base2.z, r: 14, label: 'Se reposer / dormir (T)', act: () => UI.openRest() });
   if (G.baseUp.garage && inBaseArea(G.p.x, G.p.y, G.p.z)) L.push({ x: 957, y: 0, z: 6, r: 22, label: '🅿️ Rappeler la voiture au garage', act: recallCar });
   L.push(...eventInteracts());
@@ -5008,16 +5204,25 @@ function eventParty(h) {
 function buildEventDecor() {
   const lam = (c) => new THREE.MeshLambertMaterial({ color: c });
   const bday = new THREE.Group(), xmas = new THREE.Group(), cake = new THREE.Group(), mini = new THREE.Group();
-  // anniversaire : ballons attachés à la table basse + guirlande de fanions
+  // anniversaire : ballons attachés à la table basse + guirlande de fanions (on peut s'accrocher aux ballons)
+  const balloons = [];
   [[203, 603, 0xe53935], [317, 603, 0xfdd835], [203, 677, 0x1e88e5], [317, 677, 0x43a047], [260, 690, 0xd81b60]].forEach(([x, z, c], i) => {
     const top = 125 + i * 7, b = new THREE.Mesh(new THREE.SphereGeometry(9, 14, 10), lam(c));
     b.scale.y = 1.2; b.position.set(x, top, z); bday.add(b);
     const s = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, top - 54, 4), lam(0xeeeeee));
     s.position.set(x, (top + 54) / 2 - 1, z); bday.add(s);
+    balloons.push({ x, z, top, c, ball: b, string: s });
   });
   const flags = [], fc = [0xe53935, 0xfdd835, 0x1e88e5, 0x43a047, 0xff9800];
   for (let i = 0; i < 24; i++) { const x = 40 + i * 24; flags.push([x, 196 - Math.sin((i / 23) * Math.PI) * 18, 433, x + 10, 206 - Math.sin((i / 23) * Math.PI) * 18, 434, fc[i % 5]]); }
   bday.add(meshBoxes(flags, 'plain'));
+  // médaille d'or en chocolat suspendue à la guirlande (objet unique, accessible en ballon)
+  const medal = new THREE.Group();
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.4, 16), new THREE.MeshLambertMaterial({ color: 0xf5c518, emissive: 0x5a4300 }));
+  disc.rotation.x = Math.PI / 2; medal.add(disc);
+  medal.add(meshBoxes([[-0.5, 1.6, -0.15, 0.5, 11, 0.15, 0xd32f2f]], 'plain'));
+  medal.position.set(316, 166, 437);
+  const mhalo = new THREE.Sprite(haloMaterial(0xffd54f)); mhalo.scale.setScalar(8); medal.add(mhalo);
   // gâteau sur la table basse
   const cyl = (r, h, y, c) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 20), lam(c)); m.position.y = y + h / 2; cake.add(m); };
   cyl(15, 8, 0, 0xfff3e0); cyl(15.4, 1.2, 7.6, 0xf48fb1); cyl(10, 6, 8, 0xf8bbd0); cyl(10.3, 1, 13.4, 0xffffff);
@@ -5052,14 +5257,16 @@ function buildEventDecor() {
   // minuscule cadeau pour le joueur, au pied du sapin
   mini.add(meshBoxes([[0, 0, 0, 5, 4, 5, 0xd81b60], [2, 0, -0.1, 3, 4.2, 5.1, 0xffeb3b], [-0.1, 0, 2, 5.1, 4.2, 3, 0xffeb3b]], 'plain'));
   mini.position.set(613, 0, 658);
-  for (const g of [bday, xmas, cake, mini]) { g.visible = false; SCENE.add(g); }
-  EVDECOR = { bday, xmas, cake, mini, lights };
+  for (const g of [bday, xmas, cake, mini, medal]) { g.visible = false; SCENE.add(g); }
+  EVDECOR = { bday, xmas, cake, mini, lights, balloons, medal };
 }
 
 function applyEventDecor() {
   if (!EVDECOR || !G.ev) return;
   const E = G.ev, h = G.hour;
   EVDECOR.bday.visible = isBirthday();
+  EVDECOR.balloons.forEach((b, i) => { const on = !(E.balloons && E.balloons[i]); b.ball.visible = b.string.visible = on; });
+  EVDECOR.medal.visible = isBirthday() && !G.flags.medal;
   EVDECOR.cake.visible = isBirthday() && !E.cake && h >= 12;
   EVDECOR.xmas.visible = isXmasDeco();
   EVDECOR.mini.visible = isXmas() && !E.gift;
@@ -5068,17 +5275,17 @@ function applyEventDecor() {
 
 function startEventsForDay(announce) {
   if (!G.ev || G.ev.day !== G.day) {
-    removeEventPickups();
+    removeEventPickups(); clearFootprints(); clearBalloons();
     const kinds = Object.keys(ACCIDENTS);
-    G.ev = { day: G.day, acc: { at: rand(9.5, 18.5), kind: pick(kinds), done: false }, cleanAt: 0, cake: false, gift: false, partyAnn: false, xAnn: false };
+    G.ev = { day: G.day, acc: { at: rand(9.5, 18.5), kind: pick(kinds), done: false }, cleanAt: 0, cake: false, gift: false, partyAnn: false, xAnn: false, balloons: [] };
   }
   applyEventDecor();
   if (!announce) return;
-  if (isBirthday()) setTimeout(() => toast('🎂 Aujourd’hui, c’est l’anniversaire de Léa ! Fête au salon de 16 h à 19 h… il restera sûrement des miettes de gâteau.', 'info'), 600);
+  if (isBirthday()) setTimeout(() => toast('🎂 Aujourd’hui, c’est l’anniversaire de Léa ! Fête au salon de 16 h à 19 h… il restera sûrement des miettes de gâteau.' + (G.flags.medal ? '' : ' Une médaille d’or en chocolat pend à la guirlande au-dessus de la télé… Un ballon de la table basse pourrait t’y emmener !'), 'info', 9000), 600);
   else if (isXmas()) setTimeout(() => toast('🎄 Joyeux Noël ! Un minuscule paquet t’attend au pied du sapin du salon.', 'success'), 600);
   else if (isXmasDeco()) setTimeout(() => toast('🎄 Marc a installé le sapin de Noël dans le salon. Noël approche !', 'info'), 600);
 }
-function resetEvents() { removeEventPickups(); if (EVDECOR) for (const k of ['bday', 'xmas', 'cake', 'mini']) EVDECOR[k].visible = false; if (W.vase) W.vase.visible = true; }
+function resetEvents() { removeEventPickups(); clearFootprints(); clearBalloons(); if (EVDECOR) for (const k of ['bday', 'xmas', 'cake', 'mini', 'medal']) EVDECOR[k].visible = false; if (W.vase) W.vase.visible = true; }
 function removeEventPickups() { for (const p of PICKUPS.slice()) if (p.ev) removePickup(p); }
 
 function scatter(list, cx, cz, r, y0 = null) {
@@ -5124,9 +5331,12 @@ function openXmasGift() {
   SFX.play('party'); G.stars = (G.stars || 0) + 1;
   UI.dialog('🎁 Cadeau de Noël', 'Une étiquette minuscule, écrite par Léa : « Pour le petit lutin qui vit derrière le bureau. Je sais que tu existes ! » Dedans : 3 bonbons, du miel, 4 cubes et une pomme dorée. (+1 ⭐)', [{ label: 'Merci, Léa !' }]);
 }
-function updateEvents() {
+function updateEvents(dt) {
+  updateFlyingBalloon(dt);
+  huntTick(dt);
   if (!G.started || !G.ev || !EVDECOR || G.ev.day !== G.day) return;
   const E = G.ev, h = G.hour;
+  if (isBirthday()) { creamTick(dt); tryGrabBalloon(); }
   if (!E.acc.done && h >= E.acc.at && h < 20 && G.mode !== 'dead') triggerAccident();
   if (E.cleanAt && G.time >= E.cleanAt) cleanupEvent();
   if (isBirthday()) {
@@ -5137,6 +5347,140 @@ function updateEvents() {
   if (isXmas() && !E.xAnn && h >= 9 && h < 11) { E.xAnn = true; SFX.play('party'); toast('🎄 Marc et Léa ouvrent leurs cadeaux au pied du sapin !', 'info'); }
   if (EVDECOR.xmas.visible) { const s = Math.floor(G.simT * 2.5); EVDECOR.lights.forEach((m, i) => m.material.color.setHex(XMAS_LIGHTS[(i + s) % 4])); }
 }
+
+// ---------- crème du gâteau : traces de pas → Marc et Léa te cherchent pendant 1 h ----------
+const CREAM = { feet: 0, acc: 0, side: 1, prints: [], mesh: null, seenT: 0 };
+const PRINT_MAX = 90;
+const _pm = new THREE.Matrix4(), _pq = new THREE.Quaternion(), _pe = new THREE.Euler(), _pv = new THREE.Vector3(), _ps = new THREE.Vector3(1, 1, 1);
+function clearFootprints() { CREAM.prints.length = 0; CREAM.feet = 0; if (CREAM.mesh) CREAM.mesh.count = 0; }
+function addFootprint(x, y, z, ang) {
+  if (!CREAM.mesh) {
+    CREAM.mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, 0.06, 1.9), new THREE.MeshLambertMaterial({ color: 0xfff1f5, emissive: 0x3a2a2e }), PRINT_MAX);
+    CREAM.mesh.frustumCulled = false; SCENE.add(CREAM.mesh);
+  }
+  if (CREAM.prints.length >= PRINT_MAX) CREAM.prints.shift();
+  CREAM.prints.push({ x, y, z, ang });
+  CREAM.prints.forEach((p, i) => { _pe.set(0, p.ang, 0); _pq.setFromEuler(_pe); _pv.set(p.x, p.y + 0.04, p.z); _pm.compose(_pv, _pq, _ps); CREAM.mesh.setMatrixAt(i, _pm); });
+  CREAM.mesh.count = CREAM.prints.length; CREAM.mesh.instanceMatrix.needsUpdate = true;
+}
+function creamTick(dt) {
+  const P = G.p;
+  // marcher dans le gâteau (sur la table basse) met de la crème sous les pieds pour 40 pas
+  if (EVDECOR.cake.visible && G.mode === 'walk' && P.y > 41 && P.y < 58 && dist2(P.x, P.z, 232, 625) < 16 && CREAM.feet < 30) {
+    if (CREAM.feet <= 0) toast('🎂 Oups ! Tu as marché dans la crème du gâteau : tes pieds laissent des traces de chantilly partout où tu marches…', 'warn', 6000);
+    CREAM.feet = 40;
+  }
+  if (CREAM.feet > 0 && G.mode === 'walk' && P.onGround) {
+    CREAM.acc += Math.hypot(P.vx, P.vz) * dt;
+    if (CREAM.acc > 3.2) {
+      CREAM.acc = 0; CREAM.side = -CREAM.side;
+      const a = Math.atan2(P.vx, P.vz), off = 0.7 * CREAM.side;
+      addFootprint(P.x + Math.cos(a) * off, P.y, P.z - Math.sin(a) * off, a);
+      if (--CREAM.feet === 0) toast('Tes pieds sont propres à nouveau.', 'info', 2500);
+    }
+  }
+}
+const huntActive = () => !!G.fx && (G.fx.huntUntil || 0) > G.time;
+function huntTick(dt) {
+  if (!G.started || !G.fx) return;
+  if (G.fx.huntUntil && G.time >= G.fx.huntUntil) {
+    G.fx.huntUntil = 0; clearFootprints();
+    toast('😮‍💨 Marc et Léa abandonnent les recherches. Les traces de crème ont été essuyées.', 'success');
+    return;
+  }
+  CREAM.seenT -= dt;
+  if (huntActive()) {
+    // ils fouillent autour des traces
+    if (CREAM.seenT <= 0) { CREAM.seenT = 4; for (const h of HUMANS) if (h.state === 'routine' && !h.asleep && !h.away) h.investigate(G.fx.huntX + rand(-220, 220), G.fx.huntZ + rand(-160, 160), 0.5); }
+    return;
+  }
+  if (!CREAM.prints.length || CREAM.seenT > 0) return;
+  CREAM.seenT = 0.5;
+  for (const h of HUMANS) {
+    if (h.asleep || h.away) continue;
+    for (let i = CREAM.prints.length - 1; i >= 0; i -= 3) {
+      const p = CREAM.prints[i], dx = p.x - h.x, dz = p.z - h.z, d = Math.hypot(dx, dz);
+      if (d > 380) continue;
+      if (d > 90 && Math.abs(angWrap(Math.atan2(dx, dz) - h.ry)) > (CONFIG.human.fov * Math.PI) / 360) continue;
+      if (!los(h.x, h.eyeY, h.z, p.x, p.y + 0.6, p.z)) continue;
+      return startHunt(h, p);
+    }
+  }
+}
+function startHunt(h, p) {
+  G.fx.huntUntil = G.time + 60; G.fx.huntX = p.x; G.fx.huntZ = p.z; CREAM.seenT = 0;
+  SFX.play('alert'); G.dayStats.spotted = true;
+  toast(`👣 ${h.name} a vu de minuscules traces de crème ! Marc et Léa te cherchent pendant 1 h et entendent le moindre de tes pas. Reste immobile dans une excellente cachette… ou rentre à ta base !`, 'danger', 9000);
+  for (const o of HUMANS) if (!o.asleep && !o.away) o.investigate(p.x, p.z, 0.6);
+}
+
+// ---------- ballons d'anniversaire : s'accrocher en sautant depuis la table basse ----------
+const BAL = { carry: null, fly: [], stuck: [] };
+function tryGrabBalloon() {
+  const P = G.p;
+  if (G.mode !== 'walk' || P.onGround || !EVDECOR.bday.visible || G.breath.out || G.breath.v < 10) return;
+  if (!(P.lastG > 40 && P.lastG < 47) || P.y < 44 || P.y > 80) return;   // en sautant depuis la table basse (43 cm)
+  const taken = G.ev.balloons || (G.ev.balloons = []);
+  EVDECOR.balloons.forEach((b, i) => { if (G.mode === 'walk' && !taken[i] && dist2(P.x, P.z, b.x, b.z) < 7) startBalloon(b, i); });
+}
+function balloonMesh(c) {
+  const g = new THREE.Group();
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(9, 14, 10), new THREE.MeshLambertMaterial({ color: c })); ball.scale.y = 1.2; ball.position.y = 40.8; g.add(ball);
+  const s = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 30, 4), new THREE.MeshLambertMaterial({ color: 0xeeeeee })); s.position.y = 15; g.add(s);
+  return g;
+}
+function startBalloon(b, i) {
+  G.ev.balloons[i] = true; applyEventDecor();
+  BAL.carry = balloonMesh(b.c); SCENE.add(BAL.carry);
+  const P = G.p; G.mode = 'balloon'; G.crouch = false; P.vy = 0; P.airTop = undefined;
+  SFX.play('whoosh', 0.6); Missions.event('balloon');
+  toast('🎈 Tu t’accroches au ballon ! ZQSD/WASD : se diriger · Espace : monter · sinon tu redescends doucement. Tes bras fatiguent : surveille ton Souffle 💨 !', 'success', 7000);
+}
+function updateBalloon(dt) {
+  const P = G.p, { fw, st } = moveInput(), [dx, dz] = camDir(fw, st), k = Math.min(1, dt * 2);
+  P.vx = lerp(P.vx, dx * 45, k); P.vz = lerp(P.vz, dz * 45, k);
+  P.vy = lerp(P.vy, Input.down('Space') && !UI.panel ? 32 : -9, Math.min(1, dt * 2.5));
+  P.grav = 0; P.maxFall = 0;
+  moveBody(P, dt);
+  if (P.y > 192) { P.y = 192; P.vy = Math.min(0, P.vy); }
+  G.sprinting = true;   // les bras fatiguent : le Souffle baisse comme en courant
+  if (Math.hypot(P.vx, P.vz) > 3) G.face = Math.atan2(P.vx, P.vz);
+  if (BAL.carry) BAL.carry.position.set(P.x, P.y + 6, P.z);
+  if (!G.flags.medal && Math.hypot(P.x - 316, P.y + 6 - 166, P.z - 437) < 6) grabMedal();
+  if (P.onGround) releaseBalloon(false);
+  else if (G.breath.v <= 0) releaseBalloon(true);
+}
+function grabMedal() {
+  G.flags.medal = true; giveItem('medaille', 1); EVDECOR.medal.visible = false;
+  SFX.play('quest');
+  toast('🏅 Tu as décroché la médaille d’or en chocolat ! Tant que tu l’as sur toi, ton Souffle dure plus longtemps.', 'success', 7000);
+}
+function releaseBalloon(tired) {
+  const P = G.p;
+  G.mode = 'walk'; P.grav = CONFIG.player.gravScale;
+  if (BAL.carry) { BAL.fly.push(BAL.carry); BAL.carry = null; }
+  if (tired) { P.vy = 0; P.onGround = false; P.airTop = P.y; G.fx.balloonFall = true; toast('😫 Tes bras n’en peuvent plus : tu lâches le ballon et tu tombes !', 'warn', 4000); }
+  else { P.airTop = undefined; toast('Tu lâches le ballon : il s’envole jusqu’au plafond.', 'info', 3000); }
+}
+// atterrissage après avoir lâché le ballon : le tapis devant la télé amortit, le parquet fait mal
+function balloonLanding(fall) {
+  const P = G.p;
+  if (P.chuted) return;
+  if (P.y < 2 && inRect(P.x, P.z, W.zones.salonRug)) { toast('Ouf ! Le tapis moelleux devant la télé a amorti ta chute.', 'success'); return; }
+  if (P.y < 2) { damage(clamp((fall - 20) * 0.4, 8, 30), 'Chute'); SFX.play('hurt'); toast('Aïe ! Tu es tombé sur le parquet… Vise le tapis devant la télé la prochaine fois !', 'warn'); }
+  else if (fall > CONFIG.player.fallSafe) { damage((fall - CONFIG.player.fallSafe) * CONFIG.player.fallDmg, 'Chute'); SFX.play('hurt'); }
+}
+function updateFlyingBalloon(dt) {
+  if (BAL.carry && G.mode !== 'balloon') { BAL.fly.push(BAL.carry); BAL.carry = null; }   // capturé, etc.
+  for (let i = BAL.fly.length - 1; i >= 0; i--) {
+    const g = BAL.fly[i]; g.position.y += 45 * dt; g.position.x += Math.sin(G.simT * 2 + i) * dt * 5;
+    const inHouse = g.position.x > 0 && g.position.x < 1200 && g.position.z > 0 && g.position.z < 850;
+    if (inHouse && g.position.y >= 198) { g.position.y = 198; BAL.stuck.push(g); BAL.fly.splice(i, 1); }   // collé au plafond
+    else if (!inHouse && g.position.y > 900) { SCENE.remove(g); BAL.fly.splice(i, 1); }
+  }
+  if (BAL.stuck.length && G.ev && G.ev.day !== G.day) clearBalloons();
+}
+function clearBalloons() { for (const g of [...BAL.fly, ...BAL.stuck]) SCENE.remove(g); if (BAL.carry) SCENE.remove(BAL.carry); BAL.fly = []; BAL.stuck = []; BAL.carry = null; }
 
 // ------------------------------ CLINS D'ŒIL : INTERACTIONS ------------------------------
 const EGG_NAMES = {
@@ -5448,6 +5792,8 @@ function equipHUD() {
   if (G.armor && G.armor.on) parts.push(`<span class="eq armor" title="Armure portée">🛡️ ${'●'.repeat(G.armor.dur)}${'○'.repeat(Math.max(0, 5 - G.armor.dur))}</span>`);
   if (isInvisible()) parts.push(`<span class="eq invis" title="Invisible">🫥 ${fmtDur(G.invis.charge)}</span>`);
   if ((G.fx.feastUntil || 0) > G.time) parts.push(`<span class="eq feast" title="Festin du barbecue">🍖 ${fmtDur(G.fx.feastUntil - G.time)}</span>`);
+  if (huntActive()) parts.push(`<span class="eq hunt" title="Marc et Léa te cherchent (traces de crème)">👣 ${fmtDur(G.fx.huntUntil - G.time)}</span>`);
+  else if (CREAM.feet > 0) parts.push(`<span class="eq feast" title="Tes pieds laissent des traces de crème">🍰 ${CREAM.feet} pas</span>`);
   return parts.join('');
 }
 const fmtDur = (min) => { const m = Math.max(0, Math.ceil(min)), h = Math.floor(m / 60); return h ? `${h} h ${String(m % 60).padStart(2, '0')}` : `${m} min`; };
