@@ -48,6 +48,7 @@ Deux styles graphiques au choix dans **Échap → Paramètres → Style graphiqu
 | `docs/` | Planche des styles graphiques et captures (local, non publié sur GitHub) |
 | `index.html` | Jeu généré (ne pas modifier à la main) |
 | `laventure-legendaire.html` | Redirection vers `index.html` (anciens liens et favoris) |
+| `AGENTS.md` | Contexte pour les assistants de code (règles, tests, questions en attente) |
 
 ## Reconstruire et vérifier
 
